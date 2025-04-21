@@ -1,4 +1,5 @@
 const std = @import("std");
+const sqlite = @import("sqlite");
 const args = @import("./args.zig");
 
 pub fn main() !u8 {
@@ -27,5 +28,15 @@ pub fn main() !u8 {
             return 1;
         },
     }
+    var db = try sqlite.Db.init(.{
+        .mode = sqlite.Db.Mode{ .File = "/home/exaroth/mydata.db" },
+        .open_flags = .{
+            .write = true,
+            .create = true,
+        },
+        .threading_mode = .MultiThread,
+    });
+    try db.exec("CREATE TABLE IF NOT EXISTS employees(id integer primary key, name text, age integer, salary integer)", .{}, .{});
+
     return 0;
 }

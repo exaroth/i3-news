@@ -10,7 +10,7 @@ const Command = union(enum) {
     /// Remove existing config
     rm_config: []const u8,
     /// Output headlines for i3status
-    output_i3status: [][]const u8,
+    output_i3status: [][]u8,
     /// Output headlines for i3bar
     output_i3bar: []const u8,
     /// Output headlines for polybar
@@ -19,11 +19,31 @@ const Command = union(enum) {
     none: void,
 };
 
+pub const ErrorKind = union(enum) {
+    /// When the argument itself is unknown
+    unknown,
+
+    /// When no configs were passed but expected
+    no_configs_selected,
+
+    /// Error for case when number of configs selected is invalid (i3bar)
+    invalid_config_num,
+
+    /// When no output formats were specified
+    no_outputs_specified,
+
+    /// Error for case when user selected name of config with invalid characters
+    invalid_config_name: []const u8,
+
+    /// Error for case when user selected multiple output formats
+    multiple_formats_selected,
+};
+
 /// This represents errors associated with argument processing.
 const Error = struct {
     const Self = @This();
 
-    kind: Kind,
+    kind: ErrorKind,
 
     /// Write error to stderr.
     pub fn write(self: Self) !void {
@@ -38,30 +58,10 @@ const Error = struct {
             .unknown => try writer.writeAll("Unhandled error when processing arguments\n"),
         }
     }
-
-    pub const Kind = union(enum) {
-        /// When the argument itself is unknown
-        unknown,
-
-        /// When no configs were passed but expected
-        no_configs_selected,
-
-        /// Error for case when number of configs selected is invalid (i3bar)
-        invalid_config_num,
-
-        /// When no output formats were specified
-        no_outputs_specified,
-
-        /// Error for case when user selected name of config with invalid characters
-        invalid_config_name: []const u8,
-
-        /// Error for case when user selected multiple output formats
-        multiple_formats_selected,
-    };
 };
 
 /// Raise custom errors related to argument processing.
-pub fn raiseArgumentError(kind: anytype) !void {
+pub fn raiseArgumentError(kind: ErrorKind) !void {
     const e = Error{ .kind = kind };
     try e.write();
     return error.InvalidArgument;
@@ -74,7 +74,7 @@ pub const Configs = struct {
 
     /// Load and parse configs into array.
     pub fn parse(input: []const u8) !Configs {
-        var it = std.mem.split(u8, input, ",");
+        var it = std.mem.splitSequence(u8, input, ",");
         var cfgs = std.ArrayList(Config).init(std.heap.page_allocator);
         while (it.next()) |raw_cfg| {
             const cfg = try Config.parse(raw_cfg);
