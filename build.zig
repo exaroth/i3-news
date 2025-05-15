@@ -66,20 +66,15 @@ pub fn build(b: *std.Build) void {
     });
 
     const args_m = b.dependency("args", .{ .target = target, .optimize = optimize });
-
     exe.root_module.addImport("args", args_m.module("args"));
-
     const sqlite = b.dependency("sqlite", .{
         .target = target,
         .optimize = optimize,
     });
     exe.root_module.addImport("sqlite", sqlite.module("sqlite"));
-
-    // const sqlite = b.dependency("sqlite", .{
-    //     .target = target,
-    //     .optimize = optimize,
-    // });
-    // exe.root_module.addImport("sqlite", sqlite.module("sqlite"));
+    const known_folders = b.dependency("known_folders", .{}).module("known-folders");
+    // This adds the known-folders module to the executable which can then be imported with `@import("known-folders")`
+    exe.root_module.addImport("known-folders", known_folders);
 
     // This declares intent for the executable to be installed into the
     // standard location when the user invokes the "install" step (the default

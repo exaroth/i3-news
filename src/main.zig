@@ -1,15 +1,16 @@
 const std = @import("std");
-const sqlite = @import("sqlite");
 const args = @import("./args.zig");
+const command = @import("./command.zig");
 
 pub fn main() !u8 {
-    const command = args.process_args() catch return 1;
+    const c = args.process_args() catch return 1;
 
-    std.debug.print("Command called {any}\n", .{command});
+    std.debug.print("Command called {any}\n", .{c});
 
-    switch (command) {
+    switch (c) {
         .add_config => |c_name| {
-            std.debug.print("Adding config: {s}", .{c_name});
+            // std.debug.print("Adding config: {s}", .{c_name});
+            try command.createConfig(c_name);
         },
         .rm_config => |c_name| {
             std.debug.print("removing config: {s}", .{c_name});
@@ -28,15 +29,17 @@ pub fn main() !u8 {
             return 1;
         },
     }
-    var db = try sqlite.Db.init(.{
-        .mode = sqlite.Db.Mode{ .File = "/home/exaroth/mydata.db" },
-        .open_flags = .{
-            .write = true,
-            .create = true,
-        },
-        .threading_mode = .MultiThread,
-    });
-    try db.exec("CREATE TABLE IF NOT EXISTS employees(id integer primary key, name text, age integer, salary integer)", .{}, .{});
+
+    // var stmt = try db.prepare(fetch_news_q);
+    // defer stmt.deinit();
+    // const allocator = std.heap.page_allocator; // Use a suitable allocator
+    // std.debug.print("Debug: 1", .{});
+    // _ = try stmt.all([]const u8, allocator, .{}, .{});
+    // std.debug.print("Debug: 1", .{});
+    // std.debug.print("Debug: {d}", .{names.len});
+    // for (names) |name| {
+    //     std.log.debug("name: {s}", .{name});
+    // }
 
     return 0;
 }
