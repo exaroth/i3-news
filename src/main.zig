@@ -5,8 +5,6 @@ const command = @import("./command.zig");
 pub fn main() !u8 {
     const c = args.process_args() catch return 1;
 
-    std.debug.print("Command called {any}\n", .{c});
-
     switch (c) {
         .add_config => |c_name| {
             // std.debug.print("Adding config: {s}", .{c_name});

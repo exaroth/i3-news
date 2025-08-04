@@ -69,6 +69,10 @@
             .url = "git+https://github.com/ikskuh/zig-args?ref=master#9425b94c103a031777fdd272c555ce93a7dea581",
             .hash = "args-0.0.0-CiLiqv_NAAC97fGpk9hS2K681jkiqPsWP6w3ucb_ctGH",
         },
+        .known_folders = .{
+            .url = "git+https://github.com/ziglibs/known-folders.git#ab5cf5feb936fa3b72c95d3ad0c0c67791937ba1",
+            .hash = "known_folders-0.0.0-Fy-PJtTTAADUOhGKM0sxzG4eMkNQxRvx9e5dfHVyaeA3",
+        },
         .sqlite = .{
             .url = "git+https://github.com/vrischmann/zig-sqlite#59c06617d5b86546c0c739e73ae01d3965dbe8ce",
             .hash = "sqlite-3.48.0-F2R_a_uGDgCfOH5UEJYjuOCe-HixnLjToxOdEGAEM3xk",

@@ -1,6 +1,7 @@
-const sqlite = @import("sqlite");
 const std = @import("std");
+const sqlite = @import("sqlite");
 const known_folders = @import("known-folders");
+const Tuple = std.meta.Tuple;
 
 const ChildProcess = std.process.Child;
 
@@ -8,6 +9,7 @@ const config_f_name = "config.yaml";
 const urls_f_name = "urls";
 const news_cache_f_name = "cache.db";
 const default_editor = "vim";
+const i3_config_dirname: []const u8 = "i3_news";
 
 pub const known_folders_config = .{
     .xdg_on_mac = false,
@@ -55,10 +57,79 @@ fn cleanupTemp(tmp_path: []const u8) void {
     std.fs.deleteDirAbsolute(tmp_path) catch {};
 }
 
-pub fn createConfig(config_name: []const u8) !void {
+///
+const configDirResult = Tuple(&.{ []const u8, bool });
+
+fn getConfigDir(config_name: []const u8) !configDirResult {
+    var config_dir = try known_folders.open(
+        std.heap.page_allocator,
+        known_folders.KnownFolder.local_configuration,
+        std.fs.Dir.OpenOptions{ .access_sub_paths = true },
+    ) orelse unreachable;
+    defer config_dir.close();
+
+    const config_path = try config_dir.realpathAlloc(
+        std.heap.page_allocator,
+        ".",
+    );
+    const p = try std.fmt.allocPrint(
+        std.heap.page_allocator,
+        "i3_news/{s}/",
+        .{config_name},
+    );
+    const paths = [_][]const u8{ config_path, p };
+    const full_path = try std.fs.path.join(
+        std.heap.page_allocator,
+        &paths,
+    );
+
+    _ = std.fs.openDirAbsolute(full_path, .{}) catch {
+        return .{ full_path, false };
+    };
+    return .{ full_path, true };
+}
+
+fn copyF(src: []const u8, dest: []const u8) !void {
+    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
+    defer if (gpa.deinit() != .ok) @panic("leak");
+    const allocator = gpa.allocator();
+
+    // In order to walk the directry, `iterate` must be set to true.
+    var dir = try std.fs.openDirAbsolute(src, .{ .iterate = true });
+    defer dir.close();
+
+    var walker = try dir.walk(allocator);
+    defer walker.deinit();
+
+    while (try walker.next()) |entry| {
+        const src_path = try std.fs.path.resolve(
+            std.heap.page_allocator,
+            &[_][]const u8{ src, entry.basename },
+        );
+        const dest_path = try std.fs.path.resolve(
+            std.heap.page_allocator,
+            &[_][]const u8{ dest, entry.basename },
+        );
+        try std.fs.copyFileAbsolute(src_path, dest_path, .{});
+    }
+}
+
+pub inline fn createConfig(config_name: []const u8) !void {
+    const out_file = std.io.getStdOut();
     const tmp_path = "/tmp/" ++ genRandomString(24);
+    const cfg_path: []const u8, const cfg_dir_exists: bool = try getConfigDir(config_name);
+    if (cfg_dir_exists) {
+        try out_file.writer().print(
+            "Config {s} already exists\n",
+            .{config_name},
+        );
+        return;
+    }
+
     try std.fs.makeDirAbsolute(tmp_path);
-    errdefer cleanupTemp(tmp_path);
+    defer cleanupTemp(tmp_path);
+
+    try std.fs.makeDirAbsolute(cfg_path);
 
     const temp_urls_fpath = tmp_path ++ "/" ++ urls_f_name;
     const url_f = try std.fs.createFileAbsolute(
@@ -67,6 +138,7 @@ pub fn createConfig(config_name: []const u8) !void {
     );
     defer url_f.close();
     try url_f.writeAll("# Insert list of urls for RSS feeds to track here,\n# one per line.\n ");
+
     var v_process = ChildProcess.init(
         &[_][]const u8{ "vim", "-o", temp_urls_fpath, "+3" },
         std.heap.page_allocator,
@@ -74,7 +146,10 @@ pub fn createConfig(config_name: []const u8) !void {
     try v_process.spawn();
     _ = try v_process.wait();
 
-    std.debug.print("Initializing news cache, please wait...\n", .{});
+    try out_file.writer().print(
+        "Initializing news cache, please wait...\n",
+        .{},
+    );
     const temp_cache_fpath = tmp_path ++ "/" ++ news_cache_f_name;
 
     var n_process = ChildProcess.init(
@@ -95,17 +170,9 @@ pub fn createConfig(config_name: []const u8) !void {
     });
 
     try db.exec(table_update_q, .{}, .{});
-    var config_path = try known_folders.open(std.heap.page_allocator, known_folders.KnownFolder.local_configuration, std.fs.Dir.OpenOptions{ .access_sub_paths = true }) orelse unreachable;
-
-    std.debug.print("Debug: {any}", .{config_path});
-    std.debug.print("Debug: {s}", .{config_name});
-    defer config_path.close();
-    const d = try config_path.makeOpenPath("i3_news", std.fs.Dir.OpenOptions{ .access_sub_paths = true });
-    std.debug.print("Debug: {any}", .{d});
-    // const d_s = try d.stat(); // ignore unused
-    // std.debug.print("Debug: {any}", .{d_s});
-    // check if config already exists
-    // check if main config file exists and directory structure
-    cleanupTemp(tmp_path);
-    // create config file
+    try copyF(tmp_path, cfg_path);
+    try out_file.writer().print(
+        "Configuration save at {s}\n",
+        .{cfg_path},
+    );
 }

@@ -64,6 +64,7 @@ pub fn build(b: *std.Build) void {
         .name = "i3_news",
         .root_module = exe_mod,
     });
+    exe.linkLibC();
 
     const args_m = b.dependency("args", .{ .target = target, .optimize = optimize });
     exe.root_module.addImport("args", args_m.module("args"));
@@ -75,7 +76,10 @@ pub fn build(b: *std.Build) void {
     const known_folders = b.dependency("known_folders", .{}).module("known-folders");
     // This adds the known-folders module to the executable which can then be imported with `@import("known-folders")`
     exe.root_module.addImport("known-folders", known_folders);
-
+    // exe.root_module.addImport(
+    //     "env-logger",
+    //     b.dependency("env_logger", .{}).module("env-logger"),
+    // );
     // This declares intent for the executable to be installed into the
     // standard location when the user invokes the "install" step (the default
     // step when running `zig build`).
