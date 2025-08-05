@@ -53,6 +53,7 @@ fn genRandomString(comptime len: u8) [len]u8 {
     return result;
 }
 
+/// Cleanup temp dir.
 fn cleanupTemp(tmp_id: []const u8) void {
     var tmp_dir = std.fs.openDirAbsolute("/tmp", .{}) catch {
         return;
@@ -62,6 +63,7 @@ fn cleanupTemp(tmp_id: []const u8) void {
     return;
 }
 
+/// Retrieve directory used for storing i3news configs.
 fn getI3NewsDir() !std.fs.Dir {
     var config_dir = try known_folders.open(
         std.heap.page_allocator,
@@ -73,9 +75,15 @@ fn getI3NewsDir() !std.fs.Dir {
     return dir;
 }
 
-///
-const configDirResult = Tuple(&.{ []const u8, bool });
+/// Result of config retrieval containing
+/// both the path and boolean indicating whether
+/// config exists or not.
+const configDirResult = Tuple(&.{
+    []const u8,
+    bool,
+});
 
+/// Retrieve directory containing particular config.
 fn getConfigDir(config_name: []const u8) !configDirResult {
     var i3Dir = try getI3NewsDir();
     defer i3Dir.close();
@@ -100,6 +108,7 @@ fn getConfigDir(config_name: []const u8) !configDirResult {
     return .{ full_path, true };
 }
 
+/// Recursively copy contents of one directory to another.
 fn copyDirContents(src: []const u8, dest: []const u8) !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     defer if (gpa.deinit() != .ok) @panic("leak");
@@ -125,13 +134,14 @@ fn copyDirContents(src: []const u8, dest: []const u8) !void {
     }
 }
 
+/// Create new config with given ID.
 pub inline fn createConfig(config_name: []const u8) !void {
-    const out_file = std.io.getStdOut();
+    const out_file = std.io.getStdOut().writer();
     const temp_id = genRandomString(24);
     const tmp_path = "/tmp/" ++ temp_id;
     const cfg_path: []const u8, const cfg_dir_exists: bool = try getConfigDir(config_name);
     if (cfg_dir_exists) {
-        try out_file.writer().print(
+        try out_file.print(
             "Config {s} already exists\n",
             .{config_name},
         );
@@ -158,7 +168,7 @@ pub inline fn createConfig(config_name: []const u8) !void {
     try v_process.spawn();
     _ = try v_process.wait();
 
-    try out_file.writer().print(
+    try out_file.print(
         "Initializing news cache, please wait...\n",
         .{},
     );
@@ -183,21 +193,23 @@ pub inline fn createConfig(config_name: []const u8) !void {
 
     try db.exec(table_update_q, .{}, .{});
     try copyDirContents(tmp_path, cfg_path);
-    try out_file.writer().print(
+    try out_file.print(
         "Configuration saved at {s}\n",
         .{cfg_path},
     );
 }
 
+/// Remove config with given id.
 pub inline fn removeConfig(config_id: []const u8) !void {
+    const out_file = std.io.getStdOut().writer();
     _, const config_exists: bool = try getConfigDir(config_id);
     if (!config_exists) {
-        std.debug.print("Config {s} does not exists\n", .{config_id});
+        try out_file.print("Config {s} does not exists\n", .{config_id});
         return;
     }
     var i3NewsDir = try getI3NewsDir();
     defer i3NewsDir.close();
     try i3NewsDir.deleteTree(config_id);
-    std.debug.print("Config {s} deleted\n", .{config_id});
+    try out_file.print("Config {s} deleted\n", .{config_id});
     return;
 }
