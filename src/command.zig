@@ -53,8 +53,13 @@ fn genRandomString(comptime len: u8) [len]u8 {
     return result;
 }
 
-fn cleanupTemp(tmp_path: []const u8) void {
-    std.fs.deleteDirAbsolute(tmp_path) catch {};
+fn cleanupTemp(tmp_id: []const u8) void {
+    var tmp_dir = std.fs.openDirAbsolute("/tmp", .{}) catch {
+        return;
+    };
+    defer tmp_dir.close();
+    tmp_dir.deleteTree(tmp_id) catch return;
+    return;
 }
 
 ///
@@ -67,6 +72,7 @@ fn getConfigDir(config_name: []const u8) !configDirResult {
         std.fs.Dir.OpenOptions{ .access_sub_paths = true },
     ) orelse unreachable;
     defer config_dir.close();
+    try config_dir.makePath(i3_config_dirname);
 
     const config_path = try config_dir.realpathAlloc(
         std.heap.page_allocator,
@@ -89,7 +95,7 @@ fn getConfigDir(config_name: []const u8) !configDirResult {
     return .{ full_path, true };
 }
 
-fn copyF(src: []const u8, dest: []const u8) !void {
+fn copyDirContents(src: []const u8, dest: []const u8) !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     defer if (gpa.deinit() != .ok) @panic("leak");
     const allocator = gpa.allocator();
@@ -116,7 +122,8 @@ fn copyF(src: []const u8, dest: []const u8) !void {
 
 pub inline fn createConfig(config_name: []const u8) !void {
     const out_file = std.io.getStdOut();
-    const tmp_path = "/tmp/" ++ genRandomString(24);
+    const temp_id = genRandomString(24);
+    const tmp_path = "/tmp/" ++ temp_id;
     const cfg_path: []const u8, const cfg_dir_exists: bool = try getConfigDir(config_name);
     if (cfg_dir_exists) {
         try out_file.writer().print(
@@ -127,7 +134,7 @@ pub inline fn createConfig(config_name: []const u8) !void {
     }
 
     try std.fs.makeDirAbsolute(tmp_path);
-    defer cleanupTemp(tmp_path);
+    defer cleanupTemp(&temp_id);
 
     try std.fs.makeDirAbsolute(cfg_path);
 
@@ -170,7 +177,7 @@ pub inline fn createConfig(config_name: []const u8) !void {
     });
 
     try db.exec(table_update_q, .{}, .{});
-    try copyF(tmp_path, cfg_path);
+    try copyDirContents(tmp_path, cfg_path);
     try out_file.writer().print(
         "Configuration save at {s}\n",
         .{cfg_path},
