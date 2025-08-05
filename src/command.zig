@@ -62,28 +62,33 @@ fn cleanupTemp(tmp_id: []const u8) void {
     return;
 }
 
-///
-const configDirResult = Tuple(&.{ []const u8, bool });
-
-fn getConfigDir(config_name: []const u8) !configDirResult {
+fn getI3NewsDir() !std.fs.Dir {
     var config_dir = try known_folders.open(
         std.heap.page_allocator,
         known_folders.KnownFolder.local_configuration,
         std.fs.Dir.OpenOptions{ .access_sub_paths = true },
     ) orelse unreachable;
     defer config_dir.close();
-    try config_dir.makePath(i3_config_dirname);
+    const dir = try config_dir.makeOpenPath(i3_config_dirname, .{});
+    return dir;
+}
 
-    const config_path = try config_dir.realpathAlloc(
+///
+const configDirResult = Tuple(&.{ []const u8, bool });
+
+fn getConfigDir(config_name: []const u8) !configDirResult {
+    var i3Dir = try getI3NewsDir();
+    defer i3Dir.close();
+    const i3NewsPath = try i3Dir.realpathAlloc(
         std.heap.page_allocator,
         ".",
     );
-    const p = try std.fmt.allocPrint(
+    const rel_path = try std.fmt.allocPrint(
         std.heap.page_allocator,
-        "i3_news/{s}/",
+        "{s}/",
         .{config_name},
     );
-    const paths = [_][]const u8{ config_path, p };
+    const paths = [_][]const u8{ i3NewsPath, rel_path };
     const full_path = try std.fs.path.join(
         std.heap.page_allocator,
         &paths,
@@ -179,7 +184,20 @@ pub inline fn createConfig(config_name: []const u8) !void {
     try db.exec(table_update_q, .{}, .{});
     try copyDirContents(tmp_path, cfg_path);
     try out_file.writer().print(
-        "Configuration save at {s}\n",
+        "Configuration saved at {s}\n",
         .{cfg_path},
     );
+}
+
+pub inline fn removeConfig(config_id: []const u8) !void {
+    _, const config_exists: bool = try getConfigDir(config_id);
+    if (!config_exists) {
+        std.debug.print("Config {s} does not exists\n", .{config_id});
+        return;
+    }
+    var i3NewsDir = try getI3NewsDir();
+    defer i3NewsDir.close();
+    try i3NewsDir.deleteTree(config_id);
+    std.debug.print("Config {s} deleted\n", .{config_id});
+    return;
 }
