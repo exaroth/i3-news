@@ -5,11 +5,9 @@ const Tuple = std.meta.Tuple;
 
 const ChildProcess = std.process.Child;
 
-const config_f_name = "config.yaml";
 const urls_f_name = "urls";
-const news_cache_f_name = "cache.db";
-const default_editor = "vim";
 const i3_config_dirname: []const u8 = "i3_news";
+const news_cache_f_name = "cache.db";
 
 pub const known_folders_config = .{
     .xdg_on_mac = false,
@@ -51,6 +49,15 @@ fn genRandomString(comptime len: u8) [len]u8 {
         result[index] = rand.intRangeAtMost(u8, 97, 122);
     }
     return result;
+}
+
+fn openEditor(fpath: []const u8) !void {
+    var v_process = ChildProcess.init(
+        &[_][]const u8{ "vim", "-o", fpath, "+3" },
+        std.heap.page_allocator,
+    );
+    try v_process.spawn();
+    _ = try v_process.wait();
 }
 
 /// Cleanup temp dir.
@@ -160,13 +167,7 @@ pub inline fn createConfig(config_name: []const u8) !void {
     );
     defer url_f.close();
     try url_f.writeAll("# Insert list of urls for RSS feeds to track here,\n# one per line.\n ");
-
-    var v_process = ChildProcess.init(
-        &[_][]const u8{ "vim", "-o", temp_urls_fpath, "+3" },
-        std.heap.page_allocator,
-    );
-    try v_process.spawn();
-    _ = try v_process.wait();
+    try openEditor(temp_urls_fpath);
 
     try out_file.print(
         "Initializing news cache, please wait...\n",
@@ -213,3 +214,34 @@ pub inline fn removeConfig(config_id: []const u8) !void {
     try out_file.print("Config {s} deleted\n", .{config_id});
     return;
 }
+
+pub inline fn editConfig(config_id: []const u8) !void {
+    const out_file = std.io.getStdOut().writer();
+    const cfpath: []const u8, const config_exists: bool = try getConfigDir(config_id);
+    if (!config_exists) {
+        try out_file.print("Config {s} does not exists\n", .{config_id});
+        return;
+    }
+    const p = [_][]const u8{ cfpath, urls_f_name };
+    const full_path = try std.fs.path.join(
+        std.heap.page_allocator,
+        &p,
+    );
+    try openEditor(full_path);
+}
+
+/////Output i3 bar article
+//pub inline fn i3BlocksHander(config_id: []const u8) !void {
+//    // add default browser to config
+//    // get config dir
+//    // load cache from config dir
+//    // output is
+//    // <title>
+//    // <url>
+//    // <color>
+//    //
+//    // if there are no news
+//    // No recent news
+//    // No recent news
+//    // <color>
+//}

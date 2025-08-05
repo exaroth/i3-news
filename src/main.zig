@@ -12,6 +12,9 @@ pub fn main() !u8 {
         .rm_config => |c_name| {
             try command.removeConfig(c_name);
         },
+        .edit_config => |c_name| {
+            try command.editConfig(c_name);
+        },
         .output_i3bar => |c_name| {
             std.debug.print("outputting for i3bar: {s}", .{c_name});
         },

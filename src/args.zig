@@ -9,6 +9,8 @@ const Command = union(enum) {
     add_config: []const u8,
     /// Remove existing config
     rm_config: []const u8,
+    /// Edit config urls
+    edit_config: []const u8,
     /// Output headlines for i3status
     output_i3status: [][]u8,
     /// Output headlines for i3bar
@@ -137,6 +139,8 @@ pub const Options = struct {
     @"add-config": ?Config = null,
     /// Remove existing config
     @"rm-config": ?Config = null,
+    /// Edit config urls
+    @"edit-config": ?Config = null,
     /// Print help
     help: bool = false,
 
@@ -161,12 +165,14 @@ pub const Options = struct {
         .h = "help",
         .a = "add-config",
         .r = "rm-config",
+        .e = "edit-config",
     };
 
     pub const meta = .{
         .option_docs = .{
             .@"add-config" = "Add new i3-news configuration",
             .@"rm-config" = "Remove existing configuration",
+            .@"edit-config" = "Remove existing configuration",
             .i3status = "Output headlines for i3status",
             .i3bar = "Output headlines for i3bar",
             .polybar = "Output headlines compatible with polybar",
@@ -193,6 +199,9 @@ pub inline fn process_args() !Command {
     }
     if (opts.@"rm-config" != null) {
         return Command{ .rm_config = try argsAllocator.dupeZ(u8, opts.@"rm-config".?.value) };
+    }
+    if (opts.@"edit-config" != null) {
+        return Command{ .edit_config = try argsAllocator.dupeZ(u8, opts.@"edit-config".?.value) };
     }
     const opts_num = opts.out_opt_num();
     if (opts_num == 0) {
