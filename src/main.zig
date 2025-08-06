@@ -16,7 +16,7 @@ pub fn main() !u8 {
             try command.editConfig(c_name);
         },
         .output_i3bar => |c_name| {
-            std.debug.print("outputting for i3bar: {s}", .{c_name});
+            try command.handleI3Blocks(c_name);
         },
         .output_polybar => |c_name| {
             std.debug.print("outputting for polybar: {s}", .{c_name});

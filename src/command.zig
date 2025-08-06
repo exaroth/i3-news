@@ -5,9 +5,9 @@ const Tuple = std.meta.Tuple;
 
 const ChildProcess = std.process.Child;
 
-const urls_f_name = "urls";
 const i3_config_dirname: []const u8 = "i3_news";
-const news_cache_f_name = "cache.db";
+const urls_f_name = "urls";
+const cache_f_name = "cache.db";
 
 pub const known_folders_config = .{
     .xdg_on_mac = false,
@@ -27,7 +27,7 @@ const fetch_news_q =
     \\        items.read_no as read_no
     \\        FROM rss_item as items
     \\    JOIN rss_feed as feed on feed.rssurl = items.feedurl
-    \\    WHERE datetime(items.pubDate, 'unixepoch') >= datetime('now', '-1000 hours')
+    \\    WHERE datetime(items.pubDate, 'unixepoch') >= datetime('now', ?)
     \\    AND items.unread=1
     \\    
     \\)
@@ -173,7 +173,7 @@ pub inline fn createConfig(config_name: []const u8) !void {
         "Initializing news cache, please wait...\n",
         .{},
     );
-    const temp_cache_fpath = tmp_path ++ "/" ++ news_cache_f_name;
+    const temp_cache_fpath = tmp_path ++ "/" ++ cache_f_name;
 
     var n_process = ChildProcess.init(
         &[_][]const u8{ "newsboat", "-x", "reload", "-c", temp_cache_fpath, "-u", temp_urls_fpath },
@@ -205,7 +205,7 @@ pub inline fn removeConfig(config_id: []const u8) !void {
     const out_file = std.io.getStdOut().writer();
     _, const config_exists: bool = try getConfigDir(config_id);
     if (!config_exists) {
-        try out_file.print("Config {s} does not exists\n", .{config_id});
+        try out_file.print("Config {s} does not exist\n", .{config_id});
         return;
     }
     var i3NewsDir = try getI3NewsDir();
@@ -219,7 +219,7 @@ pub inline fn editConfig(config_id: []const u8) !void {
     const out_file = std.io.getStdOut().writer();
     const cfpath: []const u8, const config_exists: bool = try getConfigDir(config_id);
     if (!config_exists) {
-        try out_file.print("Config {s} does not exists\n", .{config_id});
+        try out_file.print("Config {s} does not exist\n", .{config_id});
         return;
     }
     const p = [_][]const u8{ cfpath, urls_f_name };
@@ -230,18 +230,53 @@ pub inline fn editConfig(config_id: []const u8) !void {
     try openEditor(full_path);
 }
 
-/////Output i3 bar article
-//pub inline fn i3BlocksHander(config_id: []const u8) !void {
-//    // add default browser to config
-//    // get config dir
-//    // load cache from config dir
-//    // output is
-//    // <title>
-//    // <url>
-//    // <color>
-//    //
-//    // if there are no news
-//    // No recent news
-//    // No recent news
-//    // <color>
-//}
+///Output i3 bar article
+pub inline fn handleI3Blocks(config_id: []const u8) !void {
+    const out_file = std.io.getStdOut().writer();
+    const cfpath: []const u8, const config_exists: bool = try getConfigDir(config_id);
+    if (!config_exists) {
+        try out_file.print("Config {s} does not exist\n", .{config_id});
+        return;
+    }
+
+    const cache_path = try std.fs.path.join(
+        std.heap.page_allocator,
+        &[_][]const u8{ cfpath, cache_f_name },
+    );
+    const terminated = try std.heap.page_allocator.dupeZ(
+        u8,
+        cache_path,
+    );
+
+    var db = try sqlite.Db.init(.{
+        .mode = sqlite.Db.Mode{ .File = terminated },
+        .open_flags = .{
+            .write = true,
+        },
+        .threading_mode = .MultiThread,
+    });
+
+    var stmt = try db.prepare(fetch_news_q);
+    defer stmt.deinit();
+    const row = try stmt.one(
+        struct {
+            id: usize,
+            title: [2048:0]u8,
+            url: [2048:0]u8,
+            read_no: usize,
+        },
+        .{},
+        .{ .t = "-24 hours" },
+    );
+
+    if (row) |r| {
+        const title_ptr: [*:0]const u8 = &r.title;
+        const url_ptr: [*:0]const u8 = &r.url;
+        try out_file.print("{s}\n", .{std.mem.span(title_ptr)});
+        try out_file.print("{s}\n", .{std.mem.span(url_ptr)});
+    } else {
+        try out_file.print("News empty\n", .{});
+        try out_file.print("\n", .{});
+    }
+    try out_file.print("#959696\n", .{});
+}
