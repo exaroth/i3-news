@@ -1,0 +1,68 @@
+const std = @import("std");
+
+pub const ConfigSettings = struct {
+    const Self = @This();
+
+    path: []const u8,
+    raw: ?[][]const u8,
+    contents: ?std.StringHashMap([]const u8),
+
+    pub fn init(path: []const u8) !ConfigSettings {
+        return ConfigSettings{
+            .path = path,
+            .raw = null,
+            .contents = null,
+        };
+    }
+
+    pub fn read(self: *Self) !void {
+        var file = try std.fs.openFileAbsolute(self.path, .{});
+        defer file.close();
+        var arrl = std.ArrayList([]const u8).init(std.heap.page_allocator);
+        defer arrl.deinit();
+        var cmap = std.StringHashMap([]const u8).init(std.heap.page_allocator);
+        defer cmap.deinit();
+        var buf_reader = std.io.bufferedReader(file.reader());
+        var in_stream = buf_reader.reader();
+
+        var buf: [2048]u8 = undefined;
+        while (try in_stream.readUntilDelimiterOrEof(&buf, '\n')) |line| {
+            const l = process_line(line);
+            if (l == null) {
+                continue;
+            }
+            try arrl.append(line);
+            const k, const v = l.?;
+            try cmap.put(k, v);
+        }
+        self.raw = arrl.allocatedSlice();
+        self.contents = cmap;
+    }
+};
+
+pub const Line = std.meta.Tuple(&.{ []const u8, []const u8 });
+
+fn process_line(line: []u8) ?Line {
+    if (std.mem.startsWith(u8, line, "#")) {
+        return null;
+    }
+    const lline = std.mem.trim(u8, line, " ");
+    if (lline.len == 0) {
+        return null;
+    }
+    var parts = std.mem.splitSequence(u8, lline, " ");
+    const k = parts.first();
+    var v = parts.rest();
+    if (v.len == 0) {
+        // TODO err
+        return null;
+    }
+    v = std.mem.trim(u8, v, " ");
+    if (std.mem.startsWith(u8, v, "\"") and std.mem.endsWith(u8, v, "\"")) {
+        v = std.mem.trim(u8, v, "\"");
+    }
+    if (std.mem.startsWith(u8, v, "\'") and std.mem.endsWith(u8, v, "\'")) {
+        v = std.mem.trim(u8, v, "\'");
+    }
+    return .{ k, v };
+}

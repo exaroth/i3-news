@@ -1,6 +1,7 @@
 const std = @import("std");
 const utils = @import("utils.zig");
 const cache = @import("cache.zig");
+const settings = @import("settings.zig");
 
 const Cache = cache.Cache;
 const urls_f_name = "urls";
@@ -100,6 +101,12 @@ pub inline fn handleI3Blocks(config_id: []const u8) !void {
         try out_file.print("Config {s} does not exist\n", .{config_id});
         return;
     }
+    const s = try std.fs.path.join(
+        std.heap.page_allocator,
+        &[_][]const u8{ cfpath, "config" },
+    );
+    var cfg = try settings.ConfigSettings.init(s);
+    try cfg.read();
 
     const cache_path = try std.fs.path.join(
         std.heap.page_allocator,
@@ -116,10 +123,10 @@ pub inline fn handleI3Blocks(config_id: []const u8) !void {
         false,
     );
 
-    const result = try c.fetch_article();
+    const article = try c.fetch_article();
 
-    if (result != null) {
-        const title: [2048:0]u8, const url: [2048:0]u8 = result.?;
+    if (article != null) {
+        const title: [2048:0]u8, const url: [2048:0]u8 = article.?;
         try out_file.print("{s}\n", .{title});
         try out_file.print("{s}\n", .{url});
     } else {
