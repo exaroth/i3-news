@@ -6,6 +6,7 @@ const settings = @import("settings.zig");
 const Cache = cache.Cache;
 const urls_f_name = "urls";
 const cache_f_name = "cache.db";
+const settings_f_name = "config";
 const ChildProcess = std.process.Child;
 
 /// Create new config with given ID.
@@ -35,6 +36,13 @@ pub inline fn createConfig(config_name: []const u8) !void {
     defer url_f.close();
     try url_f.writeAll("# Insert list of urls for RSS feeds to track here,\n# one per line.\n ");
     try utils.openEditor(temp_urls_fpath);
+
+    const temp_settings_fpath = tmp_path ++ "/" ++ settings_f_name;
+    const settings_f = try std.fs.createFileAbsolute(
+        temp_settings_fpath,
+        .{ .read = true },
+    );
+    try settings_f.writeAll(settings.default_settings);
 
     try out_file.print(
         "Initializing news cache, please wait...\n",
@@ -116,6 +124,7 @@ pub inline fn handleI3Blocks(config_id: []const u8) !void {
         u8,
         cache_path,
     );
+    const max_age = try cfg.maxArticlesAge();
 
     const c = try Cache.init(
         terminated,
@@ -123,7 +132,7 @@ pub inline fn handleI3Blocks(config_id: []const u8) !void {
         false,
     );
 
-    const article = try c.fetch_article();
+    const article = try c.fetch_article(max_age);
 
     if (article != null) {
         const title: [2048:0]u8, const url: [2048:0]u8 = article.?;
@@ -133,5 +142,7 @@ pub inline fn handleI3Blocks(config_id: []const u8) !void {
         try out_file.print("News empty\n", .{});
         try out_file.print("\n", .{});
     }
-    try out_file.print("#959696\n", .{});
+    try out_file.print("{s}\n", .{
+        cfg.i3BarColor(),
+    });
 }

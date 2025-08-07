@@ -1,5 +1,15 @@
 const std = @import("std");
 
+pub const default_settings =
+    \\# I3 News configuration
+    \\# =====================
+    \\# Set amount of time in the past to display
+    \\# articles for
+    \\max-article-age 24
+    \\# Color of the i3bar snippet display
+    \\i3-bar-color #959692
+    \\
+;
 pub const ConfigSettings = struct {
     const Self = @This();
 
@@ -21,7 +31,6 @@ pub const ConfigSettings = struct {
         var arrl = std.ArrayList([]const u8).init(std.heap.page_allocator);
         defer arrl.deinit();
         var cmap = std.StringHashMap([]const u8).init(std.heap.page_allocator);
-        defer cmap.deinit();
         var buf_reader = std.io.bufferedReader(file.reader());
         var in_stream = buf_reader.reader();
 
@@ -33,10 +42,29 @@ pub const ConfigSettings = struct {
             }
             try arrl.append(line);
             const k, const v = l.?;
-            try cmap.put(k, v);
+            try cmap.put(
+                try std.heap.page_allocator.dupe(u8, k),
+                try std.heap.page_allocator.dupe(u8, v),
+            );
         }
         self.raw = arrl.allocatedSlice();
         self.contents = cmap;
+    }
+
+    pub fn maxArticlesAge(self: Self) !usize {
+        const age = self.contents.?.get("max-article-age");
+        if (age == null) {
+            return 24;
+        }
+        return try std.fmt.parseInt(usize, age.?, 10);
+    }
+
+    pub fn i3BarColor(self: Self) []const u8 {
+        const color = self.contents.?.get("i3-bar-color");
+        if (color == null) {
+            return "#959696";
+        }
+        return color.?;
     }
 };
 

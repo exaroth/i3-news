@@ -59,13 +59,18 @@ pub const Cache = struct {
         return Cache{ .db = &c };
     }
 
-    pub fn normalize_cache(self: Cache) !void {
+    pub fn normalize_cache(self: Self) !void {
         try self.db.exec(table_update_q, .{}, .{});
     }
 
-    pub fn fetch_article(self: Cache) !?ArticleResult {
+    pub fn fetch_article(self: Self, max_age: usize) !?ArticleResult {
         var stmt = try self.db.prepare(fetch_news_q);
         defer stmt.deinit();
+        const t = try std.fmt.allocPrint(
+            std.heap.page_allocator,
+            "-{d} hours",
+            .{max_age},
+        );
         const row = try stmt.one(
             struct {
                 id: usize,
@@ -74,7 +79,7 @@ pub const Cache = struct {
                 read_no: usize,
             },
             .{},
-            .{ .t = "-1 hours" },
+            .{ .t = t },
         );
         if (row) |r| {
             return .{ r.title, r.url };
