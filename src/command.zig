@@ -60,8 +60,6 @@ pub inline fn createConfig(config_name: []const u8) !void {
 
     const c = try Cache.init(
         temp_cache_fpath,
-        true,
-        true,
     );
     try c.normalize_cache();
 
@@ -126,8 +124,6 @@ pub const Config = struct {
         );
         const c = try Cache.init(
             c_path,
-            true,
-            false,
         );
         return Config{
             .cache = c,

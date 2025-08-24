@@ -41,30 +41,36 @@ pub const ArticleResult = Tuple(&.{
 pub const Cache = struct {
     const Self = @This();
 
-    db: *sqlite.Db,
+    cache_path: [:0]const u8,
 
     pub fn init(
         cache_path: [:0]const u8,
-        write: bool,
-        create: bool,
     ) !Cache {
-        var c = try sqlite.Db.init(.{
-            .mode = sqlite.Db.Mode{ .File = cache_path },
+        return Cache{ .cache_path = cache_path };
+    }
+
+    fn get_db(self: Self, write: bool, create: bool) !*sqlite.Db {
+        var db = try sqlite.Db.init(.{
+            .mode = sqlite.Db.Mode{ .File = self.cache_path },
             .open_flags = .{
                 .write = write,
                 .create = create,
             },
             .threading_mode = .MultiThread,
         });
-        return Cache{ .db = &c };
+        return &db;
     }
 
     pub fn normalize_cache(self: Self) !void {
-        try self.db.exec(table_update_q, .{}, .{});
+        var db = try self.get_db(true, true);
+        defer db.deinit();
+        try db.exec(table_update_q, .{}, .{});
     }
 
     pub fn fetch_article(self: Self, max_age: u16) !?ArticleResult {
-        var stmt = try self.db.prepare(fetch_news_q);
+        var db = try self.get_db(true, false);
+        defer db.deinit();
+        var stmt = try db.prepare(fetch_news_q);
         defer stmt.deinit();
         const t = try std.fmt.allocPrint(
             std.heap.page_allocator,
