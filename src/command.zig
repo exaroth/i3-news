@@ -3,6 +3,7 @@ const utils = @import("utils.zig");
 const cache = @import("cache.zig");
 const settings = @import("settings.zig");
 
+const Tuple = std.meta.Tuple;
 const Cache = cache.Cache;
 const urls_f_name = "urls";
 const cache_f_name = "cache.db";
@@ -101,48 +102,126 @@ pub inline fn editConfig(config_id: []const u8) !void {
     try utils.openEditor(full_path);
 }
 
+pub const Config = struct {
+    const Self = @This();
+
+    id: []const u8,
+    cache: cache.Cache,
+    settings: settings.ConfigSettings,
+
+    pub fn init(config_id: []const u8) !Config {
+        const cfpath: []const u8, const config_exists: bool = try utils.getConfigDir(config_id);
+        if (!config_exists) {
+            return error.ConfigDoesNotExist;
+        }
+        const s_path = try std.fs.path.join(
+            std.heap.page_allocator,
+            &[_][]const u8{ cfpath, "config" },
+        );
+        var s = try settings.ConfigSettings.init(s_path);
+        try s.read();
+        const c_path = try std.fs.path.joinZ(
+            std.heap.page_allocator,
+            &[_][]const u8{ cfpath, cache_f_name },
+        );
+        const c = try Cache.init(
+            c_path,
+            true,
+            false,
+        );
+        return Config{
+            .cache = c,
+            .settings = s,
+            .id = config_id,
+        };
+    }
+
+    pub fn fetch_article(self: Self) !?Tuple(&.{
+        [2048:0]u8,
+        [2048:0]u8,
+    }) {
+        const max_age = try self.settings.maxArticlesAge();
+        return try self.cache.fetch_article(max_age);
+    }
+
+    pub fn format(
+        self: *const Config,
+        comptime _: []const u8,
+        _: std.fmt.FormatOptions,
+        writer: anytype,
+    ) !void {
+        return writer.print("Config for {s}", self.id);
+    }
+};
+
 ///Output i3 bar article
 pub inline fn handleI3Blocks(config_id: []const u8) !void {
     const out_file = std.io.getStdOut().writer();
-    const cfpath: []const u8, const config_exists: bool = try utils.getConfigDir(config_id);
-    if (!config_exists) {
-        try out_file.print("Config {s} does not exist\n", .{config_id});
-        return;
-    }
-    const s = try std.fs.path.join(
-        std.heap.page_allocator,
-        &[_][]const u8{ cfpath, "config" },
-    );
-    var cfg = try settings.ConfigSettings.init(s);
-    try cfg.read();
-
-    const cache_path = try std.fs.path.join(
-        std.heap.page_allocator,
-        &[_][]const u8{ cfpath, cache_f_name },
-    );
-    const terminated = try std.heap.page_allocator.dupeZ(
-        u8,
-        cache_path,
-    );
-    const max_age = try cfg.maxArticlesAge();
-
-    const c = try Cache.init(
-        terminated,
-        true,
-        false,
-    );
-
-    const article = try c.fetch_article(max_age);
-
+    const c = try Config.init(config_id);
+    const article = try c.fetch_article();
     if (article != null) {
         const title: [2048:0]u8, const url: [2048:0]u8 = article.?;
-        try out_file.print("{s}\n", .{title});
-        try out_file.print("{s}\n", .{url});
+        try out_file.print("{s}\n{s}\n", .{ title, url });
     } else {
-        try out_file.print("News empty\n", .{});
-        try out_file.print("\n", .{});
+        try out_file.print("News empty\nNews empty\n", .{});
     }
     try out_file.print("{s}\n", .{
-        cfg.i3BarColor(),
+        c.settings.i3BarColor(),
     });
+}
+
+// name, full_text, instance, color
+const i3_status_payload = "[{{\"full_text\": \"{d}\", \"color\": \"#00FF00\"}},";
+const I3StatusConfig = struct {
+    name: []const u8,
+    full_text: []const u8,
+    instance: []const u8,
+    color: []const u8,
+};
+///Output i3status articles
+pub inline fn handleI3Status(config_ids: [][]const u8) !void {
+    // const out_file = std.io.getStdOut().writer();
+    var in_reader = std.io.getStdIn().reader();
+    var buf: [4096]u8 = undefined;
+
+    var read_no: u32 = 0;
+    // var titles = std.ArrayList([]const u8);
+    // std.debug.print("Debug: {any}\n", .{titles});
+    while (true) {
+        while (try in_reader.readUntilDelimiterOrEof(&buf, '\n')) |line| {
+            // Skip first 2 reads as these contain i3status version headers and initial bracket.
+            if (read_no < 2) {
+                read_no += 1;
+                continue;
+            }
+            for (config_ids, 0..) |config_id, idx| {
+                const c = try Config.init(config_id);
+                const article = try c.fetch_article();
+                if (article == null) {
+                    continue;
+                }
+                const title: [2048:0]u8, _ = article.?;
+                const i3sa = I3StatusConfig{
+                    .name = "i3-news",
+                    .full_text = &title,
+                    .instance = try std.fmt.allocPrint(
+                        std.heap.page_allocator,
+                        "i3-news-{d}",
+                        .{idx},
+                    ),
+                    .color = c.settings.i3BarColor(),
+                };
+                std.debug.print("Debug: {s}\n", .{i3sa.full_text});
+                // var out = std.ArrayList(u8).init(std.heap.page_allocator);
+                // try std.json.stringify(i3sa, .{}, out.writer());
+                // std.debug.print("Debug: {s}\n", .{out.items});
+            }
+
+            // for (config_ids) |config_id| {}
+            std.debug.print("STDIN: {s}\n", .{line});
+            // parse json
+            // for now remove first [ and insert parsed json in the beginning
+            break;
+        }
+    }
 }

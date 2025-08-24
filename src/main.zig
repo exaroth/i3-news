@@ -22,7 +22,7 @@ pub fn main() !u8 {
             std.debug.print("outputting for polybar: {s}", .{c_name});
         },
         .output_i3status => |c_names| {
-            std.debug.print("outputting for i3status: {any}", .{c_names});
+            try command.handleI3Status(c_names);
         },
         .none => {
             std.debug.print("Error - no command received", .{});

@@ -3,8 +3,8 @@ const std = @import("std");
 pub const default_settings =
     \\# I3 News configuration
     \\# =====================
-    \\# Set amount of time in the past to display
-    \\# articles for
+    \\# Amount of time in the past (in hours) to display
+    \\# news for
     \\max-article-age 24
     \\# Color of the i3bar snippet display
     \\i3-bar-color #959692
@@ -51,12 +51,12 @@ pub const ConfigSettings = struct {
         self.contents = cmap;
     }
 
-    pub fn maxArticlesAge(self: Self) !usize {
+    pub fn maxArticlesAge(self: Self) !u16 {
         const age = self.contents.?.get("max-article-age");
         if (age == null) {
             return 24;
         }
-        return try std.fmt.parseInt(usize, age.?, 10);
+        return try std.fmt.parseInt(u16, age.?, 10);
     }
 
     pub fn i3BarColor(self: Self) []const u8 {
@@ -70,6 +70,7 @@ pub const ConfigSettings = struct {
 
 pub const Line = std.meta.Tuple(&.{ []const u8, []const u8 });
 
+/// Process single settings line
 fn process_line(line: []u8) ?Line {
     if (std.mem.startsWith(u8, line, "#")) {
         return null;

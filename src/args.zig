@@ -12,7 +12,7 @@ const Command = union(enum) {
     /// Edit config urls
     edit_config: []const u8,
     /// Output headlines for i3status
-    output_i3status: [][]u8,
+    output_i3status: [][]const u8,
     /// Output headlines for i3bar
     output_i3bar: []const u8,
     /// Output headlines for polybar
@@ -215,7 +215,7 @@ pub inline fn process_args() !Command {
     }
     const cfgs = opts.configs.?.cfgs;
     if (opts.i3status) {
-        const tc = try argsAllocator.alloc([]u8, cfgs.items.len);
+        const tc = try argsAllocator.alloc([]const u8, cfgs.items.len);
         for (cfgs.items, 0..) |c, idx| {
             tc[idx] = try argsAllocator.dupeZ(u8, c.value);
         }

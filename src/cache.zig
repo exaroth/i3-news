@@ -63,7 +63,7 @@ pub const Cache = struct {
         try self.db.exec(table_update_q, .{}, .{});
     }
 
-    pub fn fetch_article(self: Self, max_age: usize) !?ArticleResult {
+    pub fn fetch_article(self: Self, max_age: u16) !?ArticleResult {
         var stmt = try self.db.prepare(fetch_news_q);
         defer stmt.deinit();
         const t = try std.fmt.allocPrint(
