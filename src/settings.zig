@@ -10,7 +10,7 @@ pub const default_settings =
     \\output-color #959692
     \\# Defines how often news will change when using i3-news with i3status
     \\# (in seconds)
-    \\i3-status-refresh-interval 10
+    \\refresh-interval 10
     \\
 ;
 pub const ConfigSettings = struct {
@@ -70,12 +70,12 @@ pub const ConfigSettings = struct {
         return color.?;
     }
 
-    pub fn i3StatusRefreshInterval(self: Self) usize {
-        const interval = self.contents.?.get("i3-status-refresh-interval");
+    pub fn refresh_interval(self: Self) !u64 {
+        const interval = self.contents.?.get("refresh-interval");
         if (interval == null) {
             return 10;
         }
-        return interval.?;
+        return try std.fmt.parseInt(u64, interval.?, 10);
     }
 };
 

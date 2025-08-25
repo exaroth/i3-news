@@ -127,10 +127,20 @@ pub inline fn handleI3Status(config_ids: [][]const u8) !void {
     var in_reader = std.io.getStdIn().reader();
     var buf: [4096]u8 = undefined;
 
+    const c_cache = try std.heap.page_allocator.alloc(
+        ?std.meta.Tuple(&.{
+            u64,
+            []const u8,
+        }),
+        config_ids.len,
+    );
+    @memset(c_cache, null);
+
+    var timer = try std.time.Timer.start();
     var read_no: u32 = 0;
     while (true) {
         while (try in_reader.readUntilDelimiterOrEof(&buf, '\n')) |line| {
-            // Skip first 2 reads as these contain i3status version headers and initial bracket.
+            // Skip first 2 reads as these contain i3status version headers and initial bracket.(kw)
             if (read_no < 2) {
                 read_no += 1;
                 try out_file.print("{s}\n", .{line});
@@ -138,12 +148,23 @@ pub inline fn handleI3Status(config_ids: [][]const u8) !void {
             }
             // todo: change allocator and properly free
             var c_list = try std.heap.page_allocator.alloc(
-                []u8,
+                []const u8,
                 config_ids.len,
             );
             // allocator.free(c_list)
             for (config_ids, 0..) |config_id, idx| {
                 const c = try config.Config.init(config_id);
+                if (c_cache[idx]) |cached| {
+                    const t_set: u64, const article: []const u8 = cached;
+                    const c_set = try c.settings.refresh_interval();
+                    if (t_set / std.time.ms_per_s < c_set) {
+                        c_list[idx] = article;
+                        const t_u = t_set + (timer.read() / std.time.ns_per_ms);
+                        c_cache[idx] = .{ t_u, article };
+                        continue;
+                    }
+                }
+                // if config already exists and is over add to c_list
                 const article = try c.fetch_article();
                 var title: []const u8 = "";
                 if (article != null) {
@@ -166,7 +187,10 @@ pub inline fn handleI3Status(config_ids: [][]const u8) !void {
                     .{},
                     out.writer(),
                 );
-                c_list[idx] = try std.heap.page_allocator.dupe(u8, out.items);
+                const article_d = try std.heap.page_allocator.dupe(u8, out.items);
+
+                c_cache[idx] = .{ 0, article_d };
+                c_list[idx] = article_d;
             }
 
             var line_strip: []const u8 = try std.heap.page_allocator.dupe(u8, line);
@@ -195,6 +219,7 @@ pub inline fn handleI3Status(config_ids: [][]const u8) !void {
                     .{result},
                 );
             }
+            timer.reset();
             try out_file.print("{s}\n", .{result});
         }
     }
