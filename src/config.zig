@@ -4,6 +4,8 @@ const settings = @import("settings.zig");
 const utils = @import("utils.zig");
 
 pub const cache_f_name = "cache.db";
+const settings_f_name = "config";
+const last_url_f_name = ".last.url";
 
 const Tuple = std.meta.Tuple;
 
@@ -21,7 +23,7 @@ pub const Config = struct {
         }
         const s_path = try std.fs.path.join(
             std.heap.page_allocator,
-            &[_][]const u8{ cfpath, "config" },
+            &[_][]const u8{ cfpath, settings_f_name },
         );
         var s = try settings.ConfigSettings.init(s_path);
         try s.read();
@@ -45,6 +47,28 @@ pub const Config = struct {
     }) {
         const max_age = try self.settings.maxArticlesAge();
         return try self.cache.fetch_article(max_age);
+    }
+
+    pub fn save_url_file(self: Self, url: []const u8) !void {
+        const cfpath: []const u8, const config_exists: bool = try utils.getConfigDir(self.id);
+        if (!config_exists) {
+            return;
+        }
+        const s_path = try std.fs.path.join(
+            std.heap.page_allocator,
+            &[_][]const u8{ cfpath, last_url_f_name },
+        );
+
+        const f = try std.fs.createFileAbsolute(
+            s_path,
+            .{ .read = true },
+        );
+        try f.writeAll(url);
+        return;
+    }
+
+    pub fn save_url_file_safe(self: Self, url: []const u8) void {
+        self.save_url_file(url) catch return;
     }
 
     pub fn format(

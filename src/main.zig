@@ -19,7 +19,7 @@ pub fn main() !u8 {
             try command.handleI3Blocks(c_name);
         },
         .output_polybar => |c_name| {
-            std.debug.print("outputting for polybar: {s}", .{c_name});
+            try command.handlePolybar(c_name);
         },
         .output_i3status => |c_names| {
             try command.handleI3Status(c_names);

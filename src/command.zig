@@ -224,3 +224,19 @@ pub inline fn handleI3Status(config_ids: [][]const u8) !void {
         }
     }
 }
+
+// Polybar handler.
+pub inline fn handlePolybar(config_id: []const u8) !void {
+    const out_file = std.io.getStdOut().writer();
+    const c = try config.Config.init(config_id);
+    errdefer c.save_url_file_safe("about:blank");
+    var title: []const u8 = "News empty";
+    const article = try c.fetch_article();
+    if (article != null) {
+        title, const url: []const u8 = article.?;
+        try c.save_url_file(url);
+    }
+
+    try out_file.print("{s}", .{title});
+    return;
+}
