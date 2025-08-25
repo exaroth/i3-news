@@ -215,6 +215,9 @@ pub inline fn process_args() !Command {
     }
     const cfgs = opts.configs.?.cfgs;
     if (opts.i3status) {
+        if (cfgs.items.len == 0 or cfgs.items.len > 10) {
+            try raiseArgumentError(.invalid_config_num);
+        }
         const tc = try argsAllocator.alloc([]const u8, cfgs.items.len);
         for (cfgs.items, 0..) |c, idx| {
             tc[idx] = try argsAllocator.dupeZ(u8, c.value);
@@ -228,7 +231,6 @@ pub inline fn process_args() !Command {
         return Command{ .output_i3bar = try argsAllocator.dupeZ(u8, cfgs.items[0].value) };
     }
     if (opts.polybar) {
-        // TODO might actually support
         if (cfgs.items.len > 1) {
             try raiseArgumentError(.invalid_config_num);
         }

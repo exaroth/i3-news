@@ -6,8 +6,11 @@ pub const default_settings =
     \\# Amount of time in the past (in hours) to display
     \\# news for
     \\max-article-age 24
-    \\# Color of the i3bar snippet display
-    \\i3-bar-color #959692
+    \\# Output color (hex)
+    \\output-color #959692
+    \\# Defines how often news will change when using i3-news with i3status
+    \\# (in seconds)
+    \\i3-status-refresh-interval 10
     \\
 ;
 pub const ConfigSettings = struct {
@@ -59,12 +62,20 @@ pub const ConfigSettings = struct {
         return try std.fmt.parseInt(u16, age.?, 10);
     }
 
-    pub fn i3BarColor(self: Self) []const u8 {
-        const color = self.contents.?.get("i3-bar-color");
+    pub fn outputColor(self: Self) []const u8 {
+        const color = self.contents.?.get("output-color");
         if (color == null) {
             return "#959696";
         }
         return color.?;
+    }
+
+    pub fn i3StatusRefreshInterval(self: Self) usize {
+        const interval = self.contents.?.get("i3-status-refresh-interval");
+        if (interval == null) {
+            return 10;
+        }
+        return interval.?;
     }
 };
 

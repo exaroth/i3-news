@@ -34,8 +34,8 @@ const fetch_news_q =
 
 /// Result of retrieval of the article data from db.
 pub const ArticleResult = Tuple(&.{
-    [2048:0]u8,
-    [2048:0]u8,
+    []const u8,
+    []const u8,
 });
 
 pub const Cache = struct {
@@ -77,18 +77,21 @@ pub const Cache = struct {
             "-{d} hours",
             .{max_age},
         );
-        const row = try stmt.one(
+        const row = try stmt.oneAlloc(
             struct {
                 id: usize,
-                title: [2048:0]u8,
-                url: [2048:0]u8,
+                title: []const u8,
+                url: []const u8,
                 read_no: usize,
             },
+            std.heap.page_allocator,
             .{},
             .{ .t = t },
         );
         if (row) |r| {
-            return .{ r.title, r.url };
+            const title = try std.heap.page_allocator.dupe(u8, r.title);
+            const url = try std.heap.page_allocator.dupe(u8, r.url);
+            return .{ title, url };
         }
         return null;
     }
