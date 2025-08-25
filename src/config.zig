@@ -45,7 +45,7 @@ pub const Config = struct {
         []const u8,
         []const u8,
     }) {
-        const max_age = try self.settings.maxArticlesAge();
+        const max_age = try self.settings.max_article_age();
         return try self.cache.fetch_article(max_age);
     }
 

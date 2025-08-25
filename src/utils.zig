@@ -9,7 +9,7 @@ pub const known_folders_config = .{
 };
 
 /// Generate random string with given length.
-pub fn genRandomString(comptime len: u8) [len]u8 {
+pub inline fn genRandomString(comptime len: u8) [len]u8 {
     const rand = std.crypto.random;
     var result: [len]u8 = undefined;
     for (result, 0..) |_, index| {

@@ -70,19 +70,19 @@ pub fn raiseArgumentError(kind: ErrorKind) !void {
 }
 
 /// Represents array of configs for which we will output headlines for.
-pub const Configs = struct {
+pub const ConfigArgs = struct {
     raw: []const u8,
-    cfgs: std.ArrayList(Config),
+    cfgs: std.ArrayList(ConfigArg),
 
     /// Load and parse configs into array.
-    pub fn parse(input: []const u8) !Configs {
+    pub fn parse(input: []const u8) !ConfigArgs {
         var it = std.mem.splitSequence(u8, input, ",");
-        var cfgs = std.ArrayList(Config).init(std.heap.page_allocator);
+        var cfgs = std.ArrayList(ConfigArg).init(std.heap.page_allocator);
         while (it.next()) |raw_cfg| {
-            const cfg = try Config.parse(raw_cfg);
+            const cfg = try ConfigArg.parse(raw_cfg);
             try cfgs.append(cfg);
         }
-        const c = Configs{
+        const c = ConfigArgs{
             .raw = input,
             .cfgs = cfgs,
         };
@@ -94,7 +94,7 @@ pub const Configs = struct {
 const CONFIG_ALLOWED_CHARS = [_]u8{ 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '_' };
 
 /// Represents single config argument passed by the user.
-pub const Config = struct {
+pub const ConfigArg = struct {
     value: []const u8,
 
     fn check_characters_valid(in: []const u8) bool {
@@ -115,12 +115,12 @@ pub const Config = struct {
 
     /// Parse command argument making sure no invalid chars
     /// are used in the name
-    pub fn parse(input: []const u8) !Config {
+    pub fn parse(input: []const u8) !ConfigArg {
         // check config name for invalid characters
         if (!check_characters_valid(input)) {
             try raiseArgumentError(.{ .invalid_config_name = input });
         }
-        return Config{ .value = input };
+        return ConfigArg{ .value = input };
     }
 };
 
@@ -128,7 +128,7 @@ pub const Config = struct {
 /// to the user when invoking i3-news.
 pub const Options = struct {
     /// Config names passed
-    configs: ?Configs = null,
+    configs: ?ConfigArgs = null,
     /// Will trigger streaming output for i3status
     i3status: bool = false,
     /// Will trigger status output for i3bar
@@ -136,11 +136,11 @@ pub const Options = struct {
     /// Polybar output
     polybar: bool = false,
     /// Trigger creator allowing user to add new config
-    @"add-config": ?Config = null,
+    @"add-config": ?ConfigArg = null,
     /// Remove existing config
-    @"rm-config": ?Config = null,
+    @"rm-config": ?ConfigArg = null,
     /// Edit config urls
-    @"edit-config": ?Config = null,
+    @"edit-config": ?ConfigArg = null,
     /// Print help
     help: bool = false,
 

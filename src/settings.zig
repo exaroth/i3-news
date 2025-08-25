@@ -54,7 +54,7 @@ pub const ConfigSettings = struct {
         self.contents = cmap;
     }
 
-    pub fn maxArticlesAge(self: Self) !u16 {
+    pub inline fn max_article_age(self: Self) !u16 {
         const age = self.contents.?.get("max-article-age");
         if (age == null) {
             return 24;
@@ -62,7 +62,7 @@ pub const ConfigSettings = struct {
         return try std.fmt.parseInt(u16, age.?, 10);
     }
 
-    pub fn outputColor(self: Self) []const u8 {
+    pub inline fn output_color(self: Self) []const u8 {
         const color = self.contents.?.get("output-color");
         if (color == null) {
             return "#959696";
@@ -70,7 +70,7 @@ pub const ConfigSettings = struct {
         return color.?;
     }
 
-    pub fn refresh_interval(self: Self) !u64 {
+    pub inline fn refresh_interval(self: Self) !u64 {
         const interval = self.contents.?.get("refresh-interval");
         if (interval == null) {
             return 10;

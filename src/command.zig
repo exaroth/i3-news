@@ -10,7 +10,7 @@ const settings_f_name = "config";
 const ChildProcess = std.process.Child;
 
 /// Create new config with given ID.
-pub inline fn createConfig(config_name: []const u8) !void {
+pub fn createConfig(config_name: []const u8) !void {
     const out_file = std.io.getStdOut().writer();
     const temp_id = utils.genRandomString(24);
     const tmp_path = "/tmp/" ++ temp_id;
@@ -70,7 +70,7 @@ pub inline fn createConfig(config_name: []const u8) !void {
 }
 
 /// Remove config with given id.
-pub inline fn removeConfig(config_id: []const u8) !void {
+pub fn removeConfig(config_id: []const u8) !void {
     const out_file = std.io.getStdOut().writer();
     _, const config_exists: bool = try utils.getConfigDir(config_id);
     if (!config_exists) {
@@ -84,7 +84,7 @@ pub inline fn removeConfig(config_id: []const u8) !void {
     return;
 }
 
-pub inline fn editConfig(config_id: []const u8) !void {
+pub fn editConfig(config_id: []const u8) !void {
     const out_file = std.io.getStdOut().writer();
     const cfpath: []const u8, const config_exists: bool = try utils.getConfigDir(config_id);
     if (!config_exists) {
@@ -100,7 +100,7 @@ pub inline fn editConfig(config_id: []const u8) !void {
 }
 
 ///Output i3 bar article
-pub inline fn handleI3Blocks(config_id: []const u8) !void {
+pub fn handleI3Blocks(config_id: []const u8) !void {
     const out_file = std.io.getStdOut().writer();
     const c = try config.Config.init(config_id);
     const article = try c.fetch_article();
@@ -111,7 +111,7 @@ pub inline fn handleI3Blocks(config_id: []const u8) !void {
         try out_file.print("News empty\nNews empty\n", .{});
     }
     try out_file.print("{s}\n", .{
-        c.settings.outputColor(),
+        c.settings.output_color(),
     });
 }
 
@@ -122,7 +122,7 @@ const I3StatusConfig = struct {
     color: []const u8,
 };
 ///Output i3status articles
-pub inline fn handleI3Status(config_ids: [][]const u8) !void {
+pub fn handleI3Status(config_ids: [][]const u8) !void {
     const out_file = std.io.getStdOut().writer();
     var in_reader = std.io.getStdIn().reader();
     var buf: [4096]u8 = undefined;
@@ -178,7 +178,7 @@ pub inline fn handleI3Status(config_ids: [][]const u8) !void {
                         "i3-news-{d}",
                         .{idx},
                     ),
-                    .color = c.settings.outputColor(),
+                    .color = c.settings.output_color(),
                 };
                 var out = std.ArrayList(u8).init(std.heap.page_allocator);
                 defer out.deinit();
@@ -226,7 +226,7 @@ pub inline fn handleI3Status(config_ids: [][]const u8) !void {
 }
 
 // Polybar handler.
-pub inline fn handlePolybar(config_id: []const u8) !void {
+pub fn handlePolybar(config_id: []const u8) !void {
     const out_file = std.io.getStdOut().writer();
     const c = try config.Config.init(config_id);
     errdefer c.save_url_file_safe("about:blank");
@@ -236,7 +236,8 @@ pub inline fn handlePolybar(config_id: []const u8) !void {
         title, const url: []const u8 = article.?;
         try c.save_url_file(url);
     }
+    const color = c.settings.output_color();
 
-    try out_file.print("{s}", .{title});
+    try out_file.print("%{{F{s}}}{s}%{{F{s}}}\n", .{ color, title, color });
     return;
 }
