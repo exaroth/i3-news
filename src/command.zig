@@ -2,11 +2,10 @@ const std = @import("std");
 const utils = @import("utils.zig");
 const cache = @import("cache.zig");
 const settings = @import("settings.zig");
+const config = @import("config.zig");
 
-const Tuple = std.meta.Tuple;
 const Cache = cache.Cache;
 const urls_f_name = "urls";
-const cache_f_name = "cache.db";
 const settings_f_name = "config";
 const ChildProcess = std.process.Child;
 
@@ -49,7 +48,7 @@ pub inline fn createConfig(config_name: []const u8) !void {
         "Initializing news cache, please wait...\n",
         .{},
     );
-    const temp_cache_fpath = tmp_path ++ "/" ++ cache_f_name;
+    const temp_cache_fpath = tmp_path ++ "/" ++ config.cache_f_name;
 
     var n_process = ChildProcess.init(
         &[_][]const u8{ "newsboat", "-x", "reload", "-c", temp_cache_fpath, "-u", temp_urls_fpath },
@@ -100,60 +99,10 @@ pub inline fn editConfig(config_id: []const u8) !void {
     try utils.openEditor(full_path);
 }
 
-pub const Config = struct {
-    const Self = @This();
-
-    id: []const u8,
-    cache: cache.Cache,
-    settings: settings.ConfigSettings,
-
-    pub fn init(config_id: []const u8) !Config {
-        const cfpath: []const u8, const config_exists: bool = try utils.getConfigDir(config_id);
-        if (!config_exists) {
-            return error.ConfigDoesNotExist;
-        }
-        const s_path = try std.fs.path.join(
-            std.heap.page_allocator,
-            &[_][]const u8{ cfpath, "config" },
-        );
-        var s = try settings.ConfigSettings.init(s_path);
-        try s.read();
-        const c_path = try std.fs.path.joinZ(
-            std.heap.page_allocator,
-            &[_][]const u8{ cfpath, cache_f_name },
-        );
-        const c = try Cache.init(
-            c_path,
-        );
-        return Config{
-            .cache = c,
-            .settings = s,
-            .id = config_id,
-        };
-    }
-
-    pub fn fetch_article(self: Self) !?Tuple(&.{
-        []const u8,
-        []const u8,
-    }) {
-        const max_age = try self.settings.maxArticlesAge();
-        return try self.cache.fetch_article(max_age);
-    }
-
-    pub fn format(
-        self: *const Config,
-        comptime _: []const u8,
-        _: std.fmt.FormatOptions,
-        writer: anytype,
-    ) !void {
-        return writer.print("Config for {s}", self.id);
-    }
-};
-
 ///Output i3 bar article
 pub inline fn handleI3Blocks(config_id: []const u8) !void {
     const out_file = std.io.getStdOut().writer();
-    const c = try Config.init(config_id);
+    const c = try config.Config.init(config_id);
     const article = try c.fetch_article();
     if (article != null) {
         const title: []const u8, const url: []const u8 = article.?;
@@ -194,7 +143,7 @@ pub inline fn handleI3Status(config_ids: [][]const u8) !void {
             );
             // allocator.free(c_list)
             for (config_ids, 0..) |config_id, idx| {
-                const c = try Config.init(config_id);
+                const c = try config.Config.init(config_id);
                 const article = try c.fetch_article();
                 var title: []const u8 = "";
                 if (article != null) {
