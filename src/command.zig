@@ -164,12 +164,11 @@ pub fn handleI3Status(config_ids: [][]const u8) !void {
                 try out_file.print("{s}\n", .{line});
                 continue;
             }
-            // todo: change allocator and properly free
             var c_list = try allocator.alloc(
                 []const u8,
                 config_ids.len,
             );
-            // allocator.free(c_list)
+            defer allocator.free(c_list);
             for (config_ids, 0..) |config_id, idx| {
                 const c = try config.Config.init(
                     allocator,

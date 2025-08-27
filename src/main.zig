@@ -16,16 +16,39 @@ fn logFn(
     args: anytype,
 ) void {
     if (@intFromEnum(message_level) <= @intFromEnum(log_level)) {
-        std.log.defaultLog(message_level, scope, format, args);
+        std.log.defaultLog(
+            message_level,
+            scope,
+            format,
+            args,
+        );
     }
 }
 
 pub fn main() !u8 {
+    const err_file = std.io.getStdErr().writer();
     const c: cli_args.Command, const debug: bool = cli_args.process_args() catch return 1;
     if (debug) {
         log_level = std.log.Level.debug;
     }
 
+    handle_command(c) catch |err| {
+        if (debug) {
+            return err;
+        } else {
+            try err_file.print(
+                "Error occured: {}, use --debug to see more info.\n",
+                .{err},
+            );
+        }
+        return 1;
+    };
+
+    return 0;
+}
+
+/// Handle particular command based on the cli arg.
+fn handle_command(c: cli_args.Command) !void {
     switch (c) {
         .add_config => |c_name| {
             try command.createConfig(c_name);
@@ -46,10 +69,7 @@ pub fn main() !u8 {
             try command.handleI3Status(c_names);
         },
         .none => {
-            std.debug.print("Error - no command received", .{});
-            return 1;
+            return error.NoCommandReceived;
         },
     }
-
-    return 0;
 }
