@@ -1,6 +1,7 @@
 const std = @import("std");
 const known_folders = @import("known-folders");
 
+const ChildProcess = std.process.Child;
 const i3_config_dirname: []const u8 = "i3_news";
 const Tuple = std.meta.Tuple;
 
@@ -19,25 +20,41 @@ pub inline fn genRandomString(comptime len: u8) [len]u8 {
 }
 
 /// Open file using default editor.
-pub fn openEditor(fpath: []const u8) !void {
+pub fn openEditor(allocator: std.mem.Allocator, fpath: []const u8) !void {
     var v_process = std.process.Child.init(
         &[_][]const u8{ "vim", "-o", fpath, "+3" },
-        std.heap.page_allocator,
+        allocator,
     );
     try v_process.spawn();
     _ = try v_process.wait();
 }
 
 /// Retrieve directory used for storing i3news configs.
-pub fn getI3NewsDir() !std.fs.Dir {
+pub fn getI3NewsDir(allocator: std.mem.Allocator) !std.fs.Dir {
     var config_dir = try known_folders.open(
-        std.heap.page_allocator,
+        allocator,
         known_folders.KnownFolder.local_configuration,
         std.fs.Dir.OpenOptions{ .access_sub_paths = true },
     ) orelse unreachable;
     defer config_dir.close();
-    const dir = try config_dir.makeOpenPath(i3_config_dirname, .{});
+    const dir = try config_dir.makeOpenPath(
+        i3_config_dirname,
+        .{},
+    );
     return dir;
+}
+
+pub fn newsboat_reload(
+    allocator: std.mem.Allocator,
+    cache_fpath: []const u8,
+    urls_fpath: []const u8,
+) !void {
+    var n_process = ChildProcess.init(
+        &[_][]const u8{ "newsboat", "-x", "reload", "-c", cache_fpath, "-u", urls_fpath },
+        allocator,
+    );
+    try n_process.spawn();
+    _ = try n_process.wait();
 }
 
 /// Result of config retrieval containing
@@ -49,21 +66,24 @@ const configDirResult = Tuple(&.{
 });
 
 /// Retrieve directory containing particular config.
-pub fn getConfigDir(config_name: []const u8) !configDirResult {
-    var i3Dir = try getI3NewsDir();
+pub fn getConfigDir(
+    allocator: std.mem.Allocator,
+    config_name: []const u8,
+) !configDirResult {
+    var i3Dir = try getI3NewsDir(allocator);
     defer i3Dir.close();
     const i3NewsPath = try i3Dir.realpathAlloc(
-        std.heap.page_allocator,
+        allocator,
         ".",
     );
     const rel_path = try std.fmt.allocPrint(
-        std.heap.page_allocator,
+        allocator,
         "{s}/",
         .{config_name},
     );
     const paths = [_][]const u8{ i3NewsPath, rel_path };
     const full_path = try std.fs.path.join(
-        std.heap.page_allocator,
+        allocator,
         &paths,
     );
 
@@ -74,10 +94,13 @@ pub fn getConfigDir(config_name: []const u8) !configDirResult {
 }
 
 /// Recursively copy contents of one directory to another.
-pub fn copyDirContents(src: []const u8, dest: []const u8) !void {
+pub fn copyDirContents(
+    allocator: std.mem.Allocator,
+    src: []const u8,
+    dest: []const u8,
+) !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     defer if (gpa.deinit() != .ok) @panic("leak");
-    const allocator = gpa.allocator();
 
     // In order to walk the directry, `iterate` must be set to true.
     var dir = try std.fs.openDirAbsolute(src, .{ .iterate = true });
@@ -88,11 +111,11 @@ pub fn copyDirContents(src: []const u8, dest: []const u8) !void {
 
     while (try walker.next()) |entry| {
         const src_path = try std.fs.path.resolve(
-            std.heap.page_allocator,
+            allocator,
             &[_][]const u8{ src, entry.basename },
         );
         const dest_path = try std.fs.path.resolve(
-            std.heap.page_allocator,
+            allocator,
             &[_][]const u8{ dest, entry.basename },
         );
         try std.fs.copyFileAbsolute(src_path, dest_path, .{});

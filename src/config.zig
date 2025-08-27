@@ -9,6 +9,8 @@ const last_url_f_name = ".last.url";
 
 const Tuple = std.meta.Tuple;
 
+/// Config holds data and methods associtated
+/// with particular configuration.
 pub const Config = struct {
     const Self = @This();
 
@@ -16,19 +18,23 @@ pub const Config = struct {
     cache: cache.Cache,
     settings: settings.ConfigSettings,
 
-    pub fn init(config_id: []const u8) !Config {
-        const cfpath: []const u8, const config_exists: bool = try utils.getConfigDir(config_id);
+    /// Initialize new config based on the config id.
+    pub fn init(allocator: std.mem.Allocator, config_id: []const u8) !Config {
+        const cfpath: []const u8, const config_exists: bool = try utils.getConfigDir(
+            allocator,
+            config_id,
+        );
         if (!config_exists) {
             return error.ConfigDoesNotExist;
         }
         const s_path = try std.fs.path.join(
-            std.heap.page_allocator,
+            allocator,
             &[_][]const u8{ cfpath, settings_f_name },
         );
         var s = try settings.ConfigSettings.init(s_path);
-        try s.read();
+        try s.read(allocator);
         const c_path = try std.fs.path.joinZ(
-            std.heap.page_allocator,
+            allocator,
             &[_][]const u8{ cfpath, cache_f_name },
         );
         const c = try cache.Cache.init(
@@ -41,21 +47,33 @@ pub const Config = struct {
         };
     }
 
-    pub fn fetch_article(self: Self) !?Tuple(&.{
+    /// Retrieve single article from cache.
+    pub fn fetch_article(
+        self: Self,
+        allocator: std.mem.Allocator,
+    ) !?Tuple(&.{
         []const u8,
         []const u8,
     }) {
         const max_age = try self.settings.max_article_age();
-        return try self.cache.fetch_article(max_age);
+        return try self.cache.fetch_article(allocator, max_age);
     }
 
-    pub fn save_url_file(self: Self, url: []const u8) !void {
-        const cfpath: []const u8, const config_exists: bool = try utils.getConfigDir(self.id);
+    /// Save url file with url to currently displayed article.
+    pub fn save_url_file(
+        self: Self,
+        allocator: std.mem.Allocator,
+        url: []const u8,
+    ) !void {
+        const cfpath: []const u8, const config_exists: bool = try utils.getConfigDir(
+            allocator,
+            self.id,
+        );
         if (!config_exists) {
             return;
         }
         const s_path = try std.fs.path.join(
-            std.heap.page_allocator,
+            allocator,
             &[_][]const u8{ cfpath, last_url_f_name },
         );
 
@@ -67,8 +85,12 @@ pub const Config = struct {
         return;
     }
 
-    pub fn save_url_file_safe(self: Self, url: []const u8) void {
-        self.save_url_file(url) catch return;
+    pub fn save_url_file_safe(
+        self: Self,
+        allocator: std.mem.Allocator,
+        url: []const u8,
+    ) void {
+        self.save_url_file(allocator, url) catch return;
     }
 
     pub fn format(

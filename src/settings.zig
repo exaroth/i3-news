@@ -28,12 +28,12 @@ pub const ConfigSettings = struct {
         };
     }
 
-    pub fn read(self: *Self) !void {
+    pub fn read(self: *Self, allocator: std.mem.Allocator) !void {
         var file = try std.fs.openFileAbsolute(self.path, .{});
         defer file.close();
-        var arrl = std.ArrayList([]const u8).init(std.heap.page_allocator);
+        var arrl = std.ArrayList([]const u8).init(allocator);
         defer arrl.deinit();
-        var cmap = std.StringHashMap([]const u8).init(std.heap.page_allocator);
+        var cmap = std.StringHashMap([]const u8).init(allocator);
         var buf_reader = std.io.bufferedReader(file.reader());
         var in_stream = buf_reader.reader();
 
@@ -46,8 +46,8 @@ pub const ConfigSettings = struct {
             try arrl.append(line);
             const k, const v = l.?;
             try cmap.put(
-                try std.heap.page_allocator.dupe(u8, k),
-                try std.heap.page_allocator.dupe(u8, v),
+                try allocator.dupe(u8, k),
+                try allocator.dupe(u8, v),
             );
         }
         self.raw = arrl.allocatedSlice();

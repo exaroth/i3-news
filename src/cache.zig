@@ -67,13 +67,17 @@ pub const Cache = struct {
         try db.exec(table_update_q, .{}, .{});
     }
 
-    pub fn fetch_article(self: Self, max_age: u16) !?ArticleResult {
+    pub fn fetch_article(
+        self: Self,
+        allocator: std.mem.Allocator,
+        max_age: u16,
+    ) !?ArticleResult {
         var db = try self.get_db(true, false);
         defer db.deinit();
         var stmt = try db.prepare(fetch_news_q);
         defer stmt.deinit();
         const t = try std.fmt.allocPrint(
-            std.heap.page_allocator,
+            allocator,
             "-{d} hours",
             .{max_age},
         );
@@ -84,13 +88,13 @@ pub const Cache = struct {
                 url: []const u8,
                 read_no: usize,
             },
-            std.heap.page_allocator,
+            allocator,
             .{},
             .{ .t = t },
         );
         if (row) |r| {
-            const title = try std.heap.page_allocator.dupe(u8, r.title);
-            const url = try std.heap.page_allocator.dupe(u8, r.url);
+            const title = try allocator.dupe(u8, r.title);
+            const url = try allocator.dupe(u8, r.url);
             return .{ title, url };
         }
         return null;
