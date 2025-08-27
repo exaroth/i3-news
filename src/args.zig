@@ -102,7 +102,7 @@ const CONFIG_ALLOWED_CHARS = [_]u8{ 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i',
 pub const ConfigArg = struct {
     value: []const u8,
 
-    fn check_characters_valid(in: []const u8) bool {
+    fn checkCharactersValid(in: []const u8) bool {
         for (in) |char| {
             var found = false;
             for (CONFIG_ALLOWED_CHARS) |allowed| {
@@ -122,7 +122,7 @@ pub const ConfigArg = struct {
     /// are used in the name
     pub fn parse(input: []const u8) !ConfigArg {
         // check config name for invalid characters
-        if (!check_characters_valid(input)) {
+        if (!checkCharactersValid(input)) {
             try raiseArgumentError(.{ .invalid_config_name = input });
         }
         return ConfigArg{ .value = input };
@@ -152,7 +152,7 @@ pub const Options = struct {
     help: bool = false,
 
     /// Get number of output opts set.
-    fn out_opt_num(self: Options) u8 {
+    fn outOptNum(self: Options) u8 {
         var result: u8 = 0;
         var temp: u1 = 0;
         temp = @bitCast(self.i3bar);
@@ -192,7 +192,7 @@ pub const Options = struct {
 
 /// Process arguments passed by the user, if arguments are correct
 /// return Command along with all context required for further processing.
-pub inline fn process_args() !CommandResult {
+pub inline fn processArgs() !CommandResult {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     const argsAllocator = gpa.allocator();
 
@@ -224,7 +224,7 @@ pub inline fn process_args() !CommandResult {
             opts.debug,
         };
     }
-    const opts_num = opts.out_opt_num();
+    const opts_num = opts.outOptNum();
     if (opts_num == 0) {
         try raiseArgumentError(.no_outputs_specified);
     }

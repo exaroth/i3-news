@@ -27,12 +27,12 @@ fn logFn(
 
 pub fn main() !u8 {
     const err_file = std.io.getStdErr().writer();
-    const c: cli_args.Command, const debug: bool = cli_args.process_args() catch return 1;
+    const c: cli_args.Command, const debug: bool = cli_args.processArgs() catch return 1;
     if (debug) {
         log_level = std.log.Level.debug;
     }
 
-    handle_command(c) catch |err| {
+    handleCommand(c) catch |err| {
         if (debug) {
             return err;
         } else {
@@ -48,7 +48,7 @@ pub fn main() !u8 {
 }
 
 /// Handle particular command based on the cli arg.
-fn handle_command(c: cli_args.Command) !void {
+fn handleCommand(c: cli_args.Command) !void {
     switch (c) {
         .add_config => |c_name| {
             try command.createConfig(c_name);

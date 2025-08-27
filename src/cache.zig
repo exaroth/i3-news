@@ -49,7 +49,7 @@ pub const Cache = struct {
         return Cache{ .cache_path = cache_path };
     }
 
-    fn get_db(self: Self, write: bool, create: bool) !*sqlite.Db {
+    fn getDb(self: Self, write: bool, create: bool) !*sqlite.Db {
         var db = try sqlite.Db.init(.{
             .mode = sqlite.Db.Mode{ .File = self.cache_path },
             .open_flags = .{
@@ -61,18 +61,18 @@ pub const Cache = struct {
         return &db;
     }
 
-    pub fn normalize_cache(self: Self) !void {
-        var db = try self.get_db(true, true);
+    pub fn normalizeCache(self: Self) !void {
+        var db = try self.getDb(true, true);
         defer db.deinit();
         try db.exec(table_update_q, .{}, .{});
     }
 
-    pub fn fetch_article(
+    pub fn fetchArticle(
         self: Self,
         allocator: std.mem.Allocator,
         max_age: u16,
     ) !?ArticleResult {
-        var db = try self.get_db(true, false);
+        var db = try self.getDb(true, false);
         defer db.deinit();
         var stmt = try db.prepare(fetch_news_q);
         defer stmt.deinit();

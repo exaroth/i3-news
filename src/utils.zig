@@ -44,7 +44,7 @@ pub fn getI3NewsDir(allocator: std.mem.Allocator) !std.fs.Dir {
     return dir;
 }
 
-pub fn newsboat_reload(
+pub fn newsboatReload(
     allocator: std.mem.Allocator,
     cache_fpath: []const u8,
     urls_fpath: []const u8,

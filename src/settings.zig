@@ -39,7 +39,7 @@ pub const ConfigSettings = struct {
 
         var buf: [2048]u8 = undefined;
         while (try in_stream.readUntilDelimiterOrEof(&buf, '\n')) |line| {
-            const l = process_line(line);
+            const l = processLine(line);
             if (l == null) {
                 continue;
             }
@@ -54,7 +54,7 @@ pub const ConfigSettings = struct {
         self.contents = cmap;
     }
 
-    pub inline fn max_article_age(self: Self) !u16 {
+    pub inline fn maxArticleAge(self: Self) !u16 {
         const age = self.contents.?.get("max-article-age");
         if (age == null) {
             return 24;
@@ -62,7 +62,7 @@ pub const ConfigSettings = struct {
         return try std.fmt.parseInt(u16, age.?, 10);
     }
 
-    pub inline fn output_color(self: Self) []const u8 {
+    pub inline fn outputColor(self: Self) []const u8 {
         const color = self.contents.?.get("output-color");
         if (color == null) {
             return "#959696";
@@ -70,7 +70,7 @@ pub const ConfigSettings = struct {
         return color.?;
     }
 
-    pub inline fn refresh_interval(self: Self) !u64 {
+    pub inline fn refreshInterval(self: Self) !u64 {
         const interval = self.contents.?.get("refresh-interval");
         if (interval == null) {
             return 10;
@@ -82,7 +82,7 @@ pub const ConfigSettings = struct {
 pub const Line = std.meta.Tuple(&.{ []const u8, []const u8 });
 
 /// Process single settings line
-fn process_line(line: []u8) ?Line {
+fn processLine(line: []u8) ?Line {
     if (std.mem.startsWith(u8, line, "#")) {
         return null;
     }

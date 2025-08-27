@@ -48,19 +48,19 @@ pub const Config = struct {
     }
 
     /// Retrieve single article from cache.
-    pub fn fetch_article(
+    pub fn fetchArticle(
         self: Self,
         allocator: std.mem.Allocator,
     ) !?Tuple(&.{
         []const u8,
         []const u8,
     }) {
-        const max_age = try self.settings.max_article_age();
-        return try self.cache.fetch_article(allocator, max_age);
+        const max_age = try self.settings.maxArticleAge();
+        return try self.cache.fetchArticle(allocator, max_age);
     }
 
     /// Save url file with url to currently displayed article.
-    pub fn save_url_file(
+    pub fn saveUrlFile(
         self: Self,
         allocator: std.mem.Allocator,
         url: []const u8,
@@ -85,12 +85,12 @@ pub const Config = struct {
         return;
     }
 
-    pub fn save_url_file_safe(
+    pub fn saveUrlFileSafe(
         self: Self,
         allocator: std.mem.Allocator,
         url: []const u8,
     ) void {
-        self.save_url_file(allocator, url) catch return;
+        self.saveUrlFile(allocator, url) catch return;
     }
 
     pub fn format(

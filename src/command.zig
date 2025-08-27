@@ -54,12 +54,16 @@ pub fn createConfig(config_name: []const u8) !void {
     );
     const temp_cache_fpath = tmp_path ++ "/" ++ config.cache_f_name;
 
-    try utils.newsboat_reload(allocator, temp_cache_fpath, temp_urls_fpath);
+    try utils.newsboatReload(
+        allocator,
+        temp_cache_fpath,
+        temp_urls_fpath,
+    );
 
     const c = try Cache.init(
         temp_cache_fpath,
     );
-    try c.normalize_cache();
+    try c.normalizeCache();
 
     try utils.copyDirContents(allocator, tmp_path, cfg_path);
     try out_file.print(
@@ -118,7 +122,7 @@ pub fn handleI3Blocks(config_id: []const u8) !void {
         allocator,
         config_id,
     );
-    const article = try c.fetch_article(allocator);
+    const article = try c.fetchArticle(allocator);
     if (article != null) {
         const title: []const u8, const url: []const u8 = article.?;
         try out_file.print("{s}\n{s}\n", .{ title, url });
@@ -126,7 +130,7 @@ pub fn handleI3Blocks(config_id: []const u8) !void {
         try out_file.print("News empty\nNews empty\n", .{});
     }
     try out_file.print("{s}\n", .{
-        c.settings.output_color(),
+        c.settings.outputColor(),
     });
 }
 
@@ -176,7 +180,7 @@ pub fn handleI3Status(config_ids: [][]const u8) !void {
                 );
                 if (c_cache[idx]) |cached| {
                     const t_set: u64, const article: []const u8 = cached;
-                    const c_set = try c.settings.refresh_interval();
+                    const c_set = try c.settings.refreshInterval();
                     if (t_set / std.time.ms_per_s < c_set) {
                         c_list[idx] = article;
                         const t_u = t_set + (timer.read() / std.time.ns_per_ms);
@@ -185,7 +189,7 @@ pub fn handleI3Status(config_ids: [][]const u8) !void {
                     }
                 }
                 // if config already exists and is over add to c_list
-                const article = try c.fetch_article(allocator);
+                const article = try c.fetchArticle(allocator);
                 var title: []const u8 = "";
                 if (article != null) {
                     title, _ = article.?;
@@ -198,7 +202,7 @@ pub fn handleI3Status(config_ids: [][]const u8) !void {
                         "i3-news-{d}",
                         .{idx},
                     ),
-                    .color = c.settings.output_color(),
+                    .color = c.settings.outputColor(),
                 };
                 var out = std.ArrayList(u8).init(allocator);
                 defer out.deinit();
@@ -251,14 +255,14 @@ pub fn handlePolybar(config_id: []const u8) !void {
     const allocator = gpa.allocator();
     const out_file = std.io.getStdOut().writer();
     const c = try config.Config.init(allocator, config_id);
-    errdefer c.save_url_file_safe(allocator, "about:blank");
+    errdefer c.saveUrlFileSafe(allocator, "about:blank");
     var title: []const u8 = "News empty";
-    const article = try c.fetch_article(allocator);
+    const article = try c.fetchArticle(allocator);
     if (article != null) {
         title, const url: []const u8 = article.?;
-        try c.save_url_file(allocator, url);
+        try c.saveUrlFile(allocator, url);
     }
-    const color = c.settings.output_color();
+    const color = c.settings.outputColor();
 
     try out_file.print("%{{F{s}}}{s}%{{F{s}}}\n", .{ color, title, color });
     return;
