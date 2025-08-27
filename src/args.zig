@@ -4,7 +4,7 @@ const argsParser = @import("args");
 /// Command represents available commands
 /// which can be invoked by i3-news along
 /// with associated context.
-const Command = union(enum) {
+pub const Command = union(enum) {
     /// Add new config
     add_config: []const u8,
     /// Remove existing config
@@ -20,6 +20,11 @@ const Command = union(enum) {
     /// Fallback command
     none: void,
 };
+
+pub const CommandResult = std.meta.Tuple(&.{
+    Command,
+    bool,
+});
 
 pub const ErrorKind = union(enum) {
     /// When the argument itself is unknown
@@ -141,6 +146,8 @@ pub const Options = struct {
     @"rm-config": ?ConfigArg = null,
     /// Edit config urls
     @"edit-config": ?ConfigArg = null,
+    /// Print debug
+    debug: bool = false,
     /// Print help
     help: bool = false,
 
@@ -177,6 +184,7 @@ pub const Options = struct {
             .i3bar = "Output headlines for i3bar",
             .polybar = "Output headlines compatible with polybar",
             .configs = "List of all configurations to output, separated with ','",
+            .debug = "Print debug info",
             .help = "Print help",
         },
     };
@@ -184,24 +192,37 @@ pub const Options = struct {
 
 /// Process arguments passed by the user, if arguments are correct
 /// return Command along with all context required for further processing.
-pub inline fn process_args() !Command {
+pub inline fn process_args() !CommandResult {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     const argsAllocator = gpa.allocator();
 
-    const parsed = try argsParser.parseForCurrentProcess(Options, argsAllocator, .print);
+    const parsed = try argsParser.parseForCurrentProcess(
+        Options,
+        argsAllocator,
+        .print,
+    );
     defer parsed.deinit();
     const opts = parsed.options;
     if (opts.help) {
         try argsParser.printHelp(Options, "i3news", std.io.getStdOut().writer());
     }
     if (opts.@"add-config" != null) {
-        return Command{ .add_config = try argsAllocator.dupeZ(u8, opts.@"add-config".?.value) };
+        return .{
+            Command{ .add_config = try argsAllocator.dupeZ(u8, opts.@"add-config".?.value) },
+            opts.debug,
+        };
     }
     if (opts.@"rm-config" != null) {
-        return Command{ .rm_config = try argsAllocator.dupeZ(u8, opts.@"rm-config".?.value) };
+        return .{
+            Command{ .rm_config = try argsAllocator.dupeZ(u8, opts.@"rm-config".?.value) },
+            opts.debug,
+        };
     }
     if (opts.@"edit-config" != null) {
-        return Command{ .edit_config = try argsAllocator.dupeZ(u8, opts.@"edit-config".?.value) };
+        return .{
+            Command{ .edit_config = try argsAllocator.dupeZ(u8, opts.@"edit-config".?.value) },
+            opts.debug,
+        };
     }
     const opts_num = opts.out_opt_num();
     if (opts_num == 0) {
@@ -222,19 +243,31 @@ pub inline fn process_args() !Command {
         for (cfgs.items, 0..) |c, idx| {
             tc[idx] = try argsAllocator.dupeZ(u8, c.value);
         }
-        return Command{ .output_i3status = tc };
+        return .{
+            Command{ .output_i3status = tc },
+            opts.debug,
+        };
     }
     if (opts.i3bar) {
         if (cfgs.items.len > 1) {
             try raiseArgumentError(.invalid_config_num);
         }
-        return Command{ .output_i3bar = try argsAllocator.dupeZ(u8, cfgs.items[0].value) };
+        return .{
+            Command{ .output_i3bar = try argsAllocator.dupeZ(u8, cfgs.items[0].value) },
+            opts.debug,
+        };
     }
     if (opts.polybar) {
         if (cfgs.items.len > 1) {
             try raiseArgumentError(.invalid_config_num);
         }
-        return Command{ .output_polybar = try argsAllocator.dupeZ(u8, cfgs.items[0].value) };
+        return .{
+            Command{ .output_polybar = try argsAllocator.dupeZ(u8, cfgs.items[0].value) },
+            opts.debug,
+        };
     }
-    return Command.none;
+    return .{
+        Command.none,
+        opts.debug,
+    };
 }

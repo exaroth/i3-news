@@ -13,8 +13,6 @@ pub fn createConfig(config_name: []const u8) !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     const allocator = gpa.allocator();
     const out_file = std.io.getStdOut().writer();
-    const temp_id = utils.genRandomString(24);
-    const tmp_path = "/tmp/" ++ temp_id;
 
     const cfg_path: []const u8, const cfg_dir_exists: bool = try utils.getConfigDir(
         allocator,
@@ -28,6 +26,8 @@ pub fn createConfig(config_name: []const u8) !void {
         return;
     }
 
+    const temp_id = utils.genRandomString(24);
+    const tmp_path = "/tmp/" ++ temp_id;
     try std.fs.makeDirAbsolute(tmp_path);
     defer utils.cleanupTemp(&temp_id);
     try std.fs.makeDirAbsolute(cfg_path);

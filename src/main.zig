@@ -1,9 +1,30 @@
 const std = @import("std");
-const args = @import("./args.zig");
+const cli_args = @import("./args.zig");
 const command = @import("./command.zig");
 
+pub const std_options: std.Options = .{
+    .logFn = logFn,
+    .log_level = .debug,
+};
+
+var log_level = std.log.Level.err;
+
+fn logFn(
+    comptime message_level: std.log.Level,
+    comptime scope: @TypeOf(.enum_literal),
+    comptime format: []const u8,
+    args: anytype,
+) void {
+    if (@intFromEnum(message_level) <= @intFromEnum(log_level)) {
+        std.log.defaultLog(message_level, scope, format, args);
+    }
+}
+
 pub fn main() !u8 {
-    const c = args.process_args() catch return 1;
+    const c: cli_args.Command, const debug: bool = cli_args.process_args() catch return 1;
+    if (debug) {
+        log_level = std.log.Level.debug;
+    }
 
     switch (c) {
         .add_config => |c_name| {
