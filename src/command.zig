@@ -158,6 +158,18 @@ pub fn handleI3Status(config_ids: [][]const u8) !void {
     );
     @memset(c_cache, null);
 
+    const c_s = try allocator.alloc(
+        config.Config,
+        config_ids.len,
+    );
+    for (config_ids, 0..) |config_id, idx| {
+        const c = try config.Config.init(
+            allocator,
+            config_id,
+        );
+        c_s[idx] = c;
+    }
+
     var timer = try std.time.Timer.start();
     var read_no: u8 = 0;
     while (true) {
@@ -174,11 +186,8 @@ pub fn handleI3Status(config_ids: [][]const u8) !void {
                 config_ids.len,
             );
             defer allocator.free(c_list);
-            for (config_ids, 0..) |config_id, idx| {
-                const c = try config.Config.init(
-                    allocator,
-                    config_id,
-                );
+            for (config_ids, 0..) |_, idx| {
+                var c = c_s[idx];
                 if (c_cache[idx]) |cached| {
                     const t_set: u64, const article: []const u8 = cached;
                     const c_set = try c.settings.refreshInterval();

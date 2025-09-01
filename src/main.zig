@@ -36,10 +36,20 @@ pub fn main() !u8 {
         if (debug) {
             return err;
         } else {
-            try err_file.print(
-                "Error occured: {}, use --debug to see more info.\n",
-                .{err},
-            );
+            switch (err) {
+                error.ConfigDoesNotExist => {
+                    try err_file.print(
+                        "Invalid configuration name\n",
+                        .{},
+                    );
+                },
+                else => {
+                    try err_file.print(
+                        "Error occured: {}, use --debug to see more info.\n",
+                        .{err},
+                    );
+                },
+            }
         }
         return 1;
     };

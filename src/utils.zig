@@ -87,9 +87,10 @@ pub fn getConfigDir(
         &paths,
     );
 
-    _ = std.fs.openDirAbsolute(full_path, .{}) catch {
+    var dd = std.fs.openDirAbsolute(full_path, .{}) catch {
         return .{ full_path, false };
     };
+    defer dd.close();
     return .{ full_path, true };
 }
 
