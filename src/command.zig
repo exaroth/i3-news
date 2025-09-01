@@ -113,7 +113,7 @@ pub fn editConfig(config_id: []const u8) !void {
     try utils.openEditor(allocator, full_path);
 }
 
-///Output i3 bar article
+///Output i3bar article
 pub fn handleI3Blocks(config_id: []const u8) !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     const allocator = gpa.allocator();
@@ -140,6 +140,7 @@ const I3StatusConfig = struct {
     instance: []const u8,
     color: []const u8,
 };
+
 ///Output i3status articles
 pub fn handleI3Status(config_ids: [][]const u8) !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
@@ -158,7 +159,7 @@ pub fn handleI3Status(config_ids: [][]const u8) !void {
     @memset(c_cache, null);
 
     var timer = try std.time.Timer.start();
-    var read_no: u32 = 0;
+    var read_no: u8 = 0;
     while (true) {
         while (try in_reader.readUntilDelimiterOrEof(&buf, '\n')) |line| {
             // Skip first 2 reads as these contain i3status version
@@ -188,7 +189,6 @@ pub fn handleI3Status(config_ids: [][]const u8) !void {
                         continue;
                     }
                 }
-                // if config already exists and is over add to c_list
                 const article = try c.fetchArticle(allocator);
                 var title: []const u8 = "";
                 if (article != null) {
@@ -260,10 +260,26 @@ pub fn handlePolybar(config_id: []const u8) !void {
     const article = try c.fetchArticle(allocator);
     if (article != null) {
         title, const url: []const u8 = article.?;
-        try c.saveUrlFile(allocator, url);
+        const formatted = try std.fmt.allocPrint(
+            allocator,
+            "{s}\n",
+            .{url},
+        );
+        try c.saveUrlFile(allocator, formatted);
     }
     const color = c.settings.outputColor();
 
     try out_file.print("%{{F{s}}}{s}%{{F{s}}}\n", .{ color, title, color });
+    return;
+}
+
+/// Retrieve url for currently displayed config (Polybar/Waybar only).
+pub fn getUrlForConfig(config_id: []const u8) !void {
+    const out_file = std.io.getStdOut().writer();
+    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
+    const allocator = gpa.allocator();
+    const c = try config.Config.init(allocator, config_id);
+    const url = try c.readUrlFile(allocator);
+    try out_file.print("{s}\n", .{url});
     return;
 }

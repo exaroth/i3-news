@@ -68,6 +68,9 @@ fn handleCommand(c: cli_args.Command) !void {
         .output_i3status => |c_names| {
             try command.handleI3Status(c_names);
         },
+        .get_url => |c_name| {
+            try command.getUrlForConfig(c_name);
+        },
         .none => {
             return error.NoCommandReceived;
         },

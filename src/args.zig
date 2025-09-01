@@ -18,6 +18,8 @@ pub const Command = union(enum) {
     /// Output headlines for polybar
     output_polybar: []const u8,
     /// Fallback command
+    get_url: []const u8,
+    /// Fallback command
     none: void,
 };
 
@@ -146,6 +148,8 @@ pub const Options = struct {
     @"rm-config": ?ConfigArg = null,
     /// Edit config urls
     @"edit-config": ?ConfigArg = null,
+    /// Retrieve url for the article
+    @"get-url": bool = false,
     /// Print debug
     debug: bool = false,
     /// Print help
@@ -183,7 +187,8 @@ pub const Options = struct {
             .i3status = "Output headlines for i3status",
             .i3bar = "Output headlines for i3bar",
             .polybar = "Output headlines compatible with polybar",
-            .configs = "List of all configurations to output, separated with ','",
+            .configs = "Configuration or configurations to use",
+            .@"get-url" = "Retrieve url for currently displayed headline (Polybar/Waybar only)",
             .debug = "Print debug info",
             .help = "Print help",
         },
@@ -224,6 +229,21 @@ pub inline fn processArgs() !CommandResult {
             opts.debug,
         };
     }
+
+    if (opts.configs == null) {
+        try raiseArgumentError(.no_configs_selected);
+    }
+    const cfgs = opts.configs.?.cfgs;
+
+    if (opts.@"get-url") {
+        if (cfgs.items.len > 1) {
+            try raiseArgumentError(.invalid_config_num);
+        }
+        return .{
+            Command{ .get_url = try argsAllocator.dupeZ(u8, cfgs.items[0].value) },
+            opts.debug,
+        };
+    }
     const opts_num = opts.outOptNum();
     if (opts_num == 0) {
         try raiseArgumentError(.no_outputs_specified);
@@ -231,10 +251,6 @@ pub inline fn processArgs() !CommandResult {
     if (opts_num > 1) {
         try raiseArgumentError(.multiple_formats_selected);
     }
-    if (opts.configs == null) {
-        try raiseArgumentError(.no_configs_selected);
-    }
-    const cfgs = opts.configs.?.cfgs;
     if (opts.i3status) {
         if (cfgs.items.len == 0 or cfgs.items.len > 10) {
             try raiseArgumentError(.invalid_config_num);

@@ -13,6 +13,10 @@ pub const default_settings =
     \\refresh-interval 10
     \\
 ;
+
+/// ConfigSettings is used for parsing
+/// i3-news config settings and retrieval
+/// of the values.
 pub const ConfigSettings = struct {
     const Self = @This();
 
@@ -20,6 +24,7 @@ pub const ConfigSettings = struct {
     raw: ?[][]const u8,
     contents: ?std.StringHashMap([]const u8),
 
+    /// Initialize new settings from file.
     pub fn init(path: []const u8) !ConfigSettings {
         return ConfigSettings{
             .path = path,
@@ -28,6 +33,7 @@ pub const ConfigSettings = struct {
         };
     }
 
+    /// Read file and parse lines saving resulting output.
     pub fn read(self: *Self, allocator: std.mem.Allocator) !void {
         var file = try std.fs.openFileAbsolute(self.path, .{});
         defer file.close();
@@ -81,7 +87,7 @@ pub const ConfigSettings = struct {
 
 pub const Line = std.meta.Tuple(&.{ []const u8, []const u8 });
 
-/// Process single settings line
+/// Process single settings line.
 fn processLine(line: []u8) ?Line {
     if (std.mem.startsWith(u8, line, "#")) {
         return null;
@@ -94,7 +100,6 @@ fn processLine(line: []u8) ?Line {
     const k = parts.first();
     var v = parts.rest();
     if (v.len == 0) {
-        // TODO err
         return null;
     }
     v = std.mem.trim(u8, v, " ");

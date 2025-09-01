@@ -15,6 +15,7 @@ pub const Config = struct {
     const Self = @This();
 
     id: []const u8,
+    path: []const u8,
     cache: cache.Cache,
     settings: settings.ConfigSettings,
 
@@ -44,6 +45,7 @@ pub const Config = struct {
             .cache = c,
             .settings = s,
             .id = config_id,
+            .path = cfpath,
         };
     }
 
@@ -91,6 +93,24 @@ pub const Config = struct {
         url: []const u8,
     ) void {
         self.saveUrlFile(allocator, url) catch return;
+    }
+
+    pub fn readUrlFile(self: Self, allocator: std.mem.Allocator) ![]const u8 {
+        const s_path = try std.fs.path.join(
+            allocator,
+            &[_][]const u8{ self.path, last_url_f_name },
+        );
+        var file = try std.fs.openFileAbsolute(s_path, .{});
+        defer file.close();
+        var buf_reader = std.io.bufferedReader(
+            file.reader(),
+        );
+        var in_stream = buf_reader.reader();
+        var buf: [1024]u8 = undefined;
+        while (try in_stream.readUntilDelimiterOrEof(&buf, '\n')) |line| {
+            return allocator.dupe(u8, line);
+        }
+        return "about:blank";
     }
 
     pub fn format(
