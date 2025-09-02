@@ -12,6 +12,8 @@ jobs:
       - uses: mlugg/setup-zig@v2
         with:
           version: 0.14.1
+      - name: Install deps
+        run: sudo apt-get install desktop-file-utils zsync
       - name: Set up Alpine Linux for x86_64 (build arch)
         uses: jirutka/setup-alpine@v1
         with:
@@ -31,6 +33,8 @@ jobs:
       - name: test
         run: cd AppDir && tree
       - name: Download appimage build tool
-        run: wget -nv -c https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage
+        run: |
+          wget -nv -c https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage
+          chmod a+x ./appimagetool-x86_64.AppImage
       - name: Build appimage
         run: ./appimagetool-x86_64.AppImage AppDir
