@@ -22,4 +22,4 @@ jobs:
       - name: test
         run: ls /home/runner/rootfs/alpine-latest-x86_64/usr/lib
       - name: test
-        run: cd /home/runner/rootfs/alpine-latest-x86_64 && tree
+        run: which newsboat
