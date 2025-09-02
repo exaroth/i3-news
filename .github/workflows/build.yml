@@ -20,6 +20,6 @@ jobs:
       - name: test
         run: ls /home/runner/rootfs/alpine-latest-x86_64/usr/bin
       - name: test
-        run: ls /home/runner/rootfs/alpine-latest-x86_64/usr/lib
+        run: ls /home/runner/rootfs/alpine-latest-x86_64/bin
       - name: test
         run: which newsboat
