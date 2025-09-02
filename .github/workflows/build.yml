@@ -14,12 +14,12 @@ jobs:
         with:
           arch: x86_64
           packages: >
-            build-base
-            pkgconf
-            lld
-            rustup
             newsboat
           # volumes: ${{ steps.alpine-target.outputs.root-path }}:/mnt/alpine_x64
           shell-name: alpine.sh
       - name: test
-        run: ls /home/runner/rootfs/alpine-latest-x86_64
+        run: ls /home/runner/rootfs/alpine-latest-x86_64/usr/bin
+      - name: test
+        run: ls /home/runner/rootfs/alpine-latest-x86_64/usr/lib
+      - name: test
+        run: cd /home/runner/rootfs/alpine-latest-x86_64 && tree
