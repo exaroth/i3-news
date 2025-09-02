@@ -19,7 +19,7 @@ jobs:
             lld
             rustup
             newsboat
-          volumes: ${{ steps.alpine-target.outputs.root-path }}:/mnt/alpine_x64
+          # volumes: ${{ steps.alpine-target.outputs.root-path }}:/mnt/alpine_x64
           shell-name: alpine.sh
       - name: test
-        run: ls /mnt/alpine_x64
+        run: ls /home/runner/rootfs/alpine-latest-x86_64
