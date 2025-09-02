@@ -122,11 +122,19 @@ pub fn handleI3Blocks(config_id: []const u8) !void {
         allocator,
         config_id,
     );
+    errdefer c.saveUrlFileSafe(allocator, "about:blank");
     const article = try c.fetchArticle(allocator);
     if (article != null) {
         const title: []const u8, const url: []const u8 = article.?;
-        try out_file.print("{s}\n{s}\n", .{ title, url });
+        const formatted = try std.fmt.allocPrint(
+            allocator,
+            "{s}\n",
+            .{url},
+        );
+        try c.saveUrlFile(allocator, formatted);
+        try out_file.print("{s}\n{s}\n", .{ title, config_id });
     } else {
+        try c.saveUrlFile(allocator, "about:blank\n");
         try out_file.print("News empty\nNews empty\n", .{});
     }
     try out_file.print("{s}\n", .{

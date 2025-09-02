@@ -5,9 +5,12 @@ export PATH="$HERE"/bin:"$HERE"/usr/bin:"$PATH"
 export LD_LIBRARY_PATH="$HERE"/usr/lib:"$LD_LIBRARY_PATH"
 
 export I3_NEWS_HOME=$HOME/.config/i3_news
-export I3_NEWS_BROWSER_CMD=$BROWSER
 export I3_NEWS_BIN_PATH="$HERE"/usr/bin/i3_news
 export NEWSBOAT_BIN="$HERE"/usr/bin/newsboat
+
+if [ -z ${I3_NEWS_BROWSER_CMD+x} ]; then
+    export I3_NEWS_BROWSER_CMD=$BROWSER
+fi
 
 newsboat_reload() {
     while pgrep newsboat > /dev/null; do sleep 2; done
@@ -33,8 +36,11 @@ elif [ "$1" = "open" ]; then
     $I3_NEWS_BROWSER_CMD $url
 # i3 blocks handler
 elif [[ "${BLOCK_BUTTON}" -eq 1 ]]; then
-    $I3_NEWS_BROWSER_CMD "$short_text"
-    # todo mark as read
+    if [ -n ${I3_NEWS_BROWSER_CMD+x} ]; then
+        url="$($I3_NEWS_BIN_PATH --get-url -c $short_text)"
+        $I3_NEWS_BROWSER_CMD $url
+    fi
+    $I3_NEWS_BIN_PATH -b -c $short_text
 else
     $I3_NEWS_BIN_PATH $@
 fi
