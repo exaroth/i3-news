@@ -24,8 +24,10 @@ jobs:
           mkdir -p AppDir/usr/bin
           cp /home/runner/rootfs/alpine-latest-x86_64/usr/bin/newsboat AppDir/usr/bin
           cp -Rf /home/runner/rootfs/alpine-latest-x86_64/usr/lib AppDir
+      - name: Build i3-news
+        run: make build-release
+      - name: Copy i3-news binary
+        run: cp zig-out/bin/i3_news AppDir/usr/bin
       - name: test
         run: cd AppDir && tree
-      - name: test
-        run: zig version
     
