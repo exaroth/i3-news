@@ -13,7 +13,11 @@ jobs:
         with:
           version: 0.14.1
       - name: Install deps
-        run: sudo apt-get install desktop-file-utils zsync libfuse2
+        run: sudo apt-get install desktop-file-utils libfuse2
+      - name: Download appimage build tool
+        run: |
+          wget -nv -c https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage
+          chmod a+x ./appimagetool-x86_64.AppImage
       - name: Set up Alpine Linux for x86_64 (build arch)
         uses: jirutka/setup-alpine@v1
         with:
@@ -30,11 +34,15 @@ jobs:
         run: make build-release
       - name: Copy i3-news binary
         run: cp zig-out/bin/i3_news AppDir/usr/bin
-      - name: test
-        run: cd AppDir && tree
-      - name: Download appimage build tool
-        run: |
-          wget -nv -c https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage
-          chmod a+x ./appimagetool-x86_64.AppImage
       - name: Build appimage
         run: ./appimagetool-x86_64.AppImage AppDir
+      - name: test
+        run: ls
+      - name: Upload AppImage
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: i3-news-x86_64.AppImage
+          asset_name: i3_news
+          tag: nightly
+          overwrite: true
