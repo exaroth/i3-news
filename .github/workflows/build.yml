@@ -8,17 +8,44 @@ jobs:
     runs-on: ubuntu-24.04
 
     steps:
+      - uses: actions/checkout@v4
+      - uses: mlugg/setup-zig@v2
+        with:
+          version: 0.14.1
+      - name: Install deps
+        run: sudo apt-get install desktop-file-utils libfuse2
+      - name: Download appimage build tool
+        run: |
+          wget -nv -c https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage
+          chmod a+x ./appimagetool-x86_64.AppImage
       - name: Set up Alpine Linux for x86_64 (build arch)
         uses: jirutka/setup-alpine@v1
         with:
           arch: x86_64
           packages: >
-            build-base
-            pkgconf
-            lld
-            rustup
             newsboat
-          volumes: ${{ steps.alpine-target.outputs.root-path }}:/mnt/alpine_x64
           shell-name: alpine.sh
-      - name: test
-        run: ls /mnt/alpine_x64
+      - name: Copy newsboat files
+        run: |
+          mkdir -p AppDir/usr/bin
+          cp /home/runner/rootfs/alpine-latest-x86_64/usr/bin/newsboat AppDir/usr/bin
+          cp -Rf /home/runner/rootfs/alpine-latest-x86_64/usr/lib AppDir/usr
+      - name: Build i3-news
+        run: make build-release
+      - name: Copy i3-news binary
+        run: cp zig-out/bin/i3_news AppDir/usr/bin
+      - name: Replace usr references
+        run: |
+          pushd AppDir
+          find usr/ -type f -executable -exec sed -i -e "s|/usr|././|g" {} \;
+          popd
+      - name: Build appimage
+        run: ./appimagetool-x86_64.AppImage AppDir
+      - name: Upload AppImage
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: i3-news-x86_64.AppImage
+          asset_name: i3_news
+          tag: latest
+          overwrite: true

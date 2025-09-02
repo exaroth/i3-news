@@ -5,9 +5,10 @@ all: build
 build:
 	zig build --global-cache-dir ./vendor
 
+# TODO: --release=safe  seems to break sqlite
 .PHONY: build-release
 build-release:
-	zig build --global-cache-dir ./vendor --release=safe
+	zig build --global-cache-dir ./vendor -Dtarget=x86_64-linux-musl
 
 .PHONY: build-appimage
 build-appimage:
