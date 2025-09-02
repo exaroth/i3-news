@@ -15,11 +15,14 @@ jobs:
           arch: x86_64
           packages: >
             newsboat
-          # volumes: ${{ steps.alpine-target.outputs.root-path }}:/mnt/alpine_x64
           shell-name: alpine.sh
+      - name: Copy newsboat files
+        run: |
+          mkdir -p AppDir/usr/bin
+          cp /home/runner/rootfs/alpine-latest-x86_64/usr/bin/newsboat AppDir/usr/bin
+          cp -Rf /home/runner/rootfs/alpine-latest-x86_64/usr/lib AppDir
       - name: test
-        run: ls /home/runner/rootfs/alpine-latest-x86_64/usr/bin
-      - name: test
-        run: ls /home/runner/rootfs/alpine-latest-x86_64/bin
-      - name: test
-        run: which newsboat
+        run: cd AppDir && tree
+      - name: Install zvm
+        run: curl -fsSL https://raw.githubusercontent.com/hendriknielaender/zvm/main/install.sh | bash
+    
