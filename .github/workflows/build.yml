@@ -30,4 +30,7 @@ jobs:
         run: cp zig-out/bin/i3_news AppDir/usr/bin
       - name: test
         run: cd AppDir && tree
-    
+      - name: Download appimage build tool
+        run: wget -nv -c https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage
+      - name: Build appimage
+        run: ./appimagetool-x86_64.AppImage AppDir
