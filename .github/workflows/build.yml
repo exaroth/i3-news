@@ -24,5 +24,11 @@ jobs:
       - name: test
         run: cd AppDir && tree
       - name: Install zvm
-        run: curl -fsSL https://raw.githubusercontent.com/hendriknielaender/zvm/main/install.sh | bash
+        run: |
+          curl -fsSL https://raw.githubusercontent.com/hendriknielaender/zvm/main/install.sh | bash
+          export PATH="/home/runner/.local/share/zvm/bin:$PATH"
+      - name: Install zig
+        run: zvm install master
+      - name: test
+        run: zig version
     
