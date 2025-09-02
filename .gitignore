@@ -3,3 +3,4 @@ tmp
 todo
 zig-out
 .zig-cache
+tempenv

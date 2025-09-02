@@ -1,0 +1,8 @@
+[Desktop Entry]
+Version=1.0
+Name=i3-news
+Exec=i3_news
+Terminal=true
+Icon=i3NewsIcon
+Type=Application
+Categories=Utility;

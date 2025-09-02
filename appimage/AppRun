@@ -1,0 +1,40 @@
+#!/bin/sh
+HERE="$(dirname "$(readlink -f "${0}")")"
+
+export PATH="$HERE"/bin:"$HERE"/usr/bin:"$PATH"
+export LD_LIBRARY_PATH="$HERE"/usr/lib:"$LD_LIBRARY_PATH"
+
+export I3_NEWS_HOME=$HOME/.config/i3_news
+export I3_NEWS_BROWSER_CMD=$BROWSER
+export I3_NEWS_BIN_PATH="$HERE"/usr/bin/i3_news
+export NEWSBOAT_BIN="$HERE"/usr/bin/newsboat
+
+newsboat_reload() {
+    while pgrep newsboat > /dev/null; do sleep 2; done
+    mkdir -p $I3_NEWS_HOME;
+    if [ -z "$( ls -A $I3_NEWS_HOME )" ]; then
+        echo "No configurations found in " $I3_NEWS_HOME;
+        return
+    fi
+    for dir in $I3_NEWS_HOME/*/
+    do
+        dir=${dir%*/}
+        echo "i3-news: Reloading news for config ${dir##*/}"
+        $NEWSBOAT_BIN -x reload -c ${dir}/cache.db -u ${dir}/urls
+    done
+}
+
+if [ "$1" = "reload" ]; then
+    newsboat_reload;
+# polybar 
+elif [ "$1" = "open" ]; then
+    all_args=("$@")
+    url="$($I3_NEWS_BIN_PATH --get-url ${all_args[@]:1})"
+    $I3_NEWS_BROWSER_CMD $url
+# i3 blocks handler
+elif [[ "${BLOCK_BUTTON}" -eq 1 ]]; then
+    $I3_NEWS_BROWSER_CMD "$short_text"
+    # todo mark as read
+else
+    $I3_NEWS_BIN_PATH $@
+fi
