@@ -8,6 +8,7 @@ jobs:
     runs-on: ubuntu-24.04
 
     steps:
+      - uses: actions/checkout@v4
       - name: Set up Alpine Linux for x86_64 (build arch)
         uses: jirutka/setup-alpine@v1
         with:
@@ -18,7 +19,7 @@ jobs:
             lld
             rustup
             newsboat
-          # volumes: ${{ steps.alpine-target.outputs.root-path }}:/mnt/alpine_x64
+          volumes: ${{ steps.alpine-target.outputs.root-path }}:/mnt/alpine_x64
           shell-name: alpine.sh
       - name: test
         run: ls /mnt/alpine_x64
