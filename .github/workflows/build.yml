@@ -13,7 +13,7 @@ jobs:
         with:
           version: 0.14.1
       - name: Install deps
-        run: sudo apt-get install desktop-file-utils zsync libfuse3
+        run: sudo apt-get install desktop-file-utils zsync libfuse2
       - name: Set up Alpine Linux for x86_64 (build arch)
         uses: jirutka/setup-alpine@v1
         with:
