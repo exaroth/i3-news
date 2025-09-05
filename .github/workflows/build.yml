@@ -3,7 +3,7 @@ name: build
 on: [push, pull_request]
 
 jobs:
-  test:
+  build:
     name: build
     runs-on: ubuntu-24.04
 
@@ -13,27 +13,45 @@ jobs:
         with:
           version: 0.14.1
       - name: Install deps
-        run: sudo apt-get install desktop-file-utils libfuse2
+        run: sudo apt-get update && sudo apt-get install desktop-file-utils libfuse2 snapd 
+      - name: Install newsboat
+        run: sudo snap install newsboat
       - name: Download appimage build tool
         run: |
           wget -nv -c https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage
           chmod a+x ./appimagetool-x86_64.AppImage
-      - name: Set up Alpine Linux for x86_64 (build arch)
-        uses: jirutka/setup-alpine@v1
-        with:
-          arch: x86_64
-          packages: >
-            newsboat
-          shell-name: alpine.sh
       - name: Copy newsboat files
         run: |
-          mkdir -p AppDir/usr/bin
-          cp /home/runner/rootfs/alpine-latest-x86_64/usr/bin/newsboat AppDir/usr/bin
-          cp -Rf /home/runner/rootfs/alpine-latest-x86_64/usr/lib AppDir/usr
+          mkdir -p AppDir/usr/
+          cp -Rf /snap/newsboat/current/usr/lib/x86_64-linux-gnu AppDir/usr/lib
+          mkdir -p AppDir/usr/local/bin
+          cp -Rf /snap/newsboat/current/usr/local/bin/newsboat AppDir/usr/local/bin
+          cp /snap/core20/current/usr/lib/x86_64-linux-gnu/libjson-c.so.4 AppDir/usr/lib
+          cp /snap/core20/current/usr/lib/x86_64-linux-gnu/libjson-c.so.4.0.0 AppDir/usr/lib
+          cp /snap/core20/current/usr/lib/x86_64-linux-gnu/libssl.so.1.1 AppDir/usr/lib
+          cp /snap/core20/current/usr/lib/x86_64-linux-gnu/libsqlite3.so.0 AppDir/usr/lib
+          cp /snap/core20/current/usr/lib/x86_64-linux-gnu/libsqlite3.so.0.8.6 AppDir/usr/lib
+          cp /snap/core20/current/usr/lib/x86_64-linux-gnu/libdl-2.31.so AppDir/usr/lib
+          cp /snap/core20/current/usr/lib/x86_64-linux-gnu/libdl.so.2 AppDir/usr/lib
+          cp /snap/core20/current/usr/lib/x86_64-linux-gnu/libncursesw.so.6 AppDir/usr/lib
+          cp /snap/core20/current/usr/lib/x86_64-linux-gnu/libncursesw.so.6.2 AppDir/usr/lib
+          cp /snap/core20/current/usr/lib/x86_64-linux-gnu/libzstd.so.1 AppDir/usr/lib
+          cp /snap/core20/current/usr/lib/x86_64-linux-gnu/libzstd.so.1.4.4 AppDir/usr/lib
+          cp /snap/core20/current/usr/lib/x86_64-linux-gnu/libz.so.1 AppDir/usr/lib
+          cp /snap/core20/current/usr/lib/x86_64-linux-gnu/libz.so.1.2.11 AppDir/usr/lib
+          cp /snap/core20/current/usr/lib/x86_64-linux-gnu/libkeyutils.so.1 AppDir/usr/lib
+          cp /snap/core20/current/usr/lib/x86_64-linux-gnu/libkeyutils.so.1.8 AppDir/usr/lib
+          cp /snap/core20/current/usr/lib/x86_64-linux-gnu/libcrypto.so.1.1 AppDir/usr/lib
+          cp /snap/core20/current/usr/lib/x86_64-linux-gnu/libhogweed.so.5 AppDir/usr/lib
+          cp /snap/core20/current/usr/lib/x86_64-linux-gnu/libhogweed.so.5.0 AppDir/usr/lib
+          cp /snap/core20/current/usr/lib/x86_64-linux-gnu/libnettle.so.7 AppDir/usr/lib
+          cp /snap/core20/current/usr/lib/x86_64-linux-gnu/libnettle.so.7.0 AppDir/usr/lib
+          cp /snap/core20/current/usr/lib/x86_64-linux-gnu/libunistring.so.2 AppDir/usr/lib
+          cp /snap/core20/current/usr/lib/x86_64-linux-gnu/libunistring.so.2.1.0 AppDir/usr/lib
       - name: Build i3-news
         run: make build-release
       - name: Copy i3-news binary
-        run: cp zig-out/bin/i3_news AppDir/usr/bin
+        run: cp zig-out/bin/i3_news AppDir/usr/local/bin
       - name: Replace usr references
         run: |
           pushd AppDir

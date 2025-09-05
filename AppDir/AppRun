@@ -5,8 +5,8 @@ export PATH="$HERE"/bin:"$HERE"/usr/bin:"$PATH"
 export LD_LIBRARY_PATH="$HERE"/usr/lib:"$LD_LIBRARY_PATH"
 
 export I3_NEWS_HOME=$HOME/.config/i3_news
-export I3_NEWS_BIN_PATH="$HERE"/usr/bin/i3_news
-export NEWSBOAT_BIN="$HERE"/usr/bin/newsboat
+export I3_NEWS_BIN_PATH="$HERE"/usr/local/bin/i3_news
+export NEWSBOAT_BIN="$HERE"/usr/local/bin/newsboat
 
 if [ -z ${I3_NEWS_BROWSER_CMD+x} ]; then
     export I3_NEWS_BROWSER_CMD=$BROWSER
