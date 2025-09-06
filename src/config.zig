@@ -2,8 +2,8 @@ const std = @import("std");
 const cache = @import("cache.zig");
 const settings = @import("settings.zig");
 const utils = @import("utils.zig");
+const sqlite = @import("sqlite");
 
-pub const cache_f_name = "cache.db";
 const settings_f_name = "config";
 const last_url_f_name = ".last.url";
 
@@ -16,7 +16,6 @@ pub const Config = struct {
 
     id: []const u8,
     path: []const u8,
-    cache: cache.Cache,
     settings: settings.ConfigSettings,
 
     /// Initialize new config based on the config id.
@@ -34,15 +33,7 @@ pub const Config = struct {
         );
         var s = try settings.ConfigSettings.init(s_path);
         try s.read(allocator);
-        const c_path = try std.fs.path.joinZ(
-            allocator,
-            &[_][]const u8{ cfpath, cache_f_name },
-        );
-        const c = try cache.Cache.init(
-            c_path,
-        );
         return Config{
-            .cache = c,
             .settings = s,
             .id = config_id,
             .path = cfpath,
@@ -52,13 +43,18 @@ pub const Config = struct {
     /// Retrieve single article from cache.
     pub fn fetchArticle(
         self: Self,
+        db: *sqlite.Db,
         allocator: std.mem.Allocator,
     ) !?Tuple(&.{
         []const u8,
         []const u8,
     }) {
         const max_age = try self.settings.maxArticleAge();
-        return try self.cache.fetchArticle(allocator, max_age);
+        return try cache.fetchArticle(
+            db,
+            allocator,
+            max_age,
+        );
     }
 
     /// Save url file with url to currently displayed article.

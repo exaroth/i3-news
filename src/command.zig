@@ -3,8 +3,8 @@ const utils = @import("utils.zig");
 const cache = @import("cache.zig");
 const settings = @import("settings.zig");
 const config = @import("config.zig");
+const sqlite = @import("sqlite");
 
-const Cache = cache.Cache;
 const urls_f_name = "urls";
 const settings_f_name = "config";
 
@@ -52,18 +52,19 @@ pub fn createConfig(config_name: []const u8) !void {
         "Initializing news cache, please wait...\n",
         .{},
     );
-    const temp_cache_fpath = tmp_path ++ "/" ++ config.cache_f_name;
+    const temp_cache_fpath = tmp_path ++ "/" ++ cache.cache_f_name;
 
     try utils.newsboatReload(
         allocator,
         temp_cache_fpath,
         temp_urls_fpath,
     );
-
-    const c = try Cache.init(
+    var db = try cache.getDb(
         temp_cache_fpath,
+        true,
+        true,
     );
-    try c.normalizeCache();
+    try cache.normalizeCache(&db);
 
     try utils.copyDirContents(allocator, tmp_path, cfg_path);
     try out_file.print(
@@ -122,8 +123,15 @@ pub fn handleI3Blocks(config_id: []const u8) !void {
         allocator,
         config_id,
     );
+    var db = try cache.getDbForConfig(
+        config_id,
+        allocator,
+        true,
+        false,
+    );
+    defer db.deinit();
     errdefer c.saveUrlFileSafe(allocator, "about:blank");
-    const article = try c.fetchArticle(allocator);
+    const article = try c.fetchArticle(&db, allocator);
     if (article != null) {
         const title: []const u8, const url: []const u8 = article.?;
         const formatted = try std.fmt.allocPrint(
@@ -170,6 +178,25 @@ pub fn handleI3Status(config_ids: [][]const u8) !void {
         config.Config,
         config_ids.len,
     );
+    const c_d = try allocator.alloc(
+        sqlite.Db,
+        config_ids.len,
+    );
+    for (config_ids, 0..) |config_id, idx| {
+        const c = try config.Config.init(
+            allocator,
+            config_id,
+        );
+        const db = try cache.getDbForConfig(
+            config_id,
+            allocator,
+            true,
+            false,
+        );
+        c_s[idx] = c;
+        c_d[idx] = db;
+    }
+
     for (config_ids, 0..) |config_id, idx| {
         const c = try config.Config.init(
             allocator,
@@ -206,7 +233,7 @@ pub fn handleI3Status(config_ids: [][]const u8) !void {
                         continue;
                     }
                 }
-                const article = try c.fetchArticle(allocator);
+                const article = try c.fetchArticle(&c_d[idx], allocator);
                 var title: []const u8 = "";
                 if (article != null) {
                     title, _ = article.?;
@@ -272,9 +299,16 @@ pub fn handlePolybar(config_id: []const u8) !void {
     const allocator = gpa.allocator();
     const out_file = std.io.getStdOut().writer();
     const c = try config.Config.init(allocator, config_id);
+    var db = try cache.getDbForConfig(
+        config_id,
+        allocator,
+        true,
+        false,
+    );
+    defer db.deinit();
     errdefer c.saveUrlFileSafe(allocator, "about:blank");
     var title: []const u8 = "News empty";
-    const article = try c.fetchArticle(allocator);
+    const article = try c.fetchArticle(&db, allocator);
     if (article != null) {
         title, const url: []const u8 = article.?;
         const formatted = try std.fmt.allocPrint(
