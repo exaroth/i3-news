@@ -68,6 +68,8 @@ elif [[ "${BLOCK_BUTTON}" -eq 1 ]]; then
         xdg-open $url
     fi
     $I3_NEWS_BIN_PATH -b -c $short_text
+elif [ "$1" = "version" ]; then
+    cat "$HERE"/VERSION
 else
     $I3_NEWS_BIN_PATH $@
 fi
