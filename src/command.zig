@@ -136,11 +136,10 @@ fn getArticleForConfig(allocator: std.mem.Allocator, c: *config.Config) !?Tuple(
         false,
     );
     defer db.deinit();
-    errdefer c.saveUrlFileSafe(allocator, "about:blank");
+    errdefer c.saveUrlFileSafe(allocator, "about:blank\n");
     const article = try c.fetchArticle(&db, allocator);
     if (article != null) {
         _, const url: []const u8 = article.?;
-        try cache.markArticleRead(&db, url);
         try c.saveUrlFile(allocator, url);
     } else {
         try c.saveUrlFile(allocator, "about:blank\n");
@@ -380,8 +379,16 @@ pub fn getUrlForConfig(config_id: []const u8) !void {
     const out_file = std.io.getStdOut().writer();
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     const allocator = gpa.allocator();
+    var db = try cache.getDbForConfig(
+        config_id,
+        allocator,
+        true,
+        false,
+    );
+    defer db.deinit();
     const c = try config.Config.init(allocator, config_id);
     const url = try c.readUrlFile(allocator);
+    try cache.markArticleRead(&db, url);
     try out_file.print("{s}\n", .{url});
     return;
 }

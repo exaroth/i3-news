@@ -124,6 +124,7 @@ pub fn fetchArticle(
 }
 
 pub fn markArticleRead(db: *sqlite.Db, url: []const u8) !void {
-    defer db.deinit();
-    try db.exec(table_mark_read_q, .{}, .{url});
+    var stmt = try db.prepare(table_mark_read_q);
+    defer stmt.deinit();
+    try stmt.exec(.{}, .{ .url = url });
 }
