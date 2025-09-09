@@ -53,6 +53,9 @@ elif [ "$1" = "open" ]; then
 elif [ "$1" = "zscroll" ]; then
     all_args=("$@")
     i3_news_command="$I3_NEWS_BIN_PATH --plain ${all_args[@]:1}"
+    if ! eval $i3_news_command > /dev/null; then
+        exit
+    fi
     $ZSCROLL_EXE -l $ZSCROLL_WIDTH \
         --delay $ZSCROLL_DELAY \
         --match-command "$i3_news_command" \
