@@ -12,6 +12,7 @@ if [ -z ${I3_NEWS_BROWSER_CMD+x} ]; then
     export I3_NEWS_BROWSER_CMD=$BROWSER
 fi
 
+# TODO check for browser
 newsboat_reload() {
     while pgrep newsboat > /dev/null; do sleep 2; done
     mkdir -p $I3_NEWS_HOME;
@@ -33,12 +34,19 @@ if [ "$1" = "reload" ]; then
 elif [ "$1" = "open" ]; then
     all_args=("$@")
     url="$($I3_NEWS_BIN_PATH --get-url ${all_args[@]:1})"
+    if [ -n ${I3_NEWS_BROWSER_CMD+x} ]; then
+        $I3_NEWS_BROWSER_CMD $url
+    else
+        xdg-open $url
+    fi
     $I3_NEWS_BROWSER_CMD $url
 # i3 blocks handler
 elif [[ "${BLOCK_BUTTON}" -eq 1 ]]; then
+    url="$($I3_NEWS_BIN_PATH --get-url -c $short_text)"
     if [ -n ${I3_NEWS_BROWSER_CMD+x} ]; then
-        url="$($I3_NEWS_BIN_PATH --get-url -c $short_text)"
         $I3_NEWS_BROWSER_CMD $url
+    else
+        xdg-open $url
     fi
     $I3_NEWS_BIN_PATH -b -c $short_text
 else

@@ -63,6 +63,11 @@ pub const Config = struct {
         allocator: std.mem.Allocator,
         url: []const u8,
     ) !void {
+        const formatted = try std.fmt.allocPrint(
+            allocator,
+            "{s}\n",
+            .{url},
+        );
         const cfpath: []const u8, const config_exists: bool = try utils.getConfigDir(
             allocator,
             self.id,
@@ -79,7 +84,7 @@ pub const Config = struct {
             s_path,
             .{ .read = true },
         );
-        try f.writeAll(url);
+        try f.writeAll(formatted);
         return;
     }
 

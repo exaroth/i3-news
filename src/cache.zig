@@ -5,7 +5,7 @@ const utils = @import("utils.zig");
 pub const cache_f_name = "cache.db";
 const Tuple = std.meta.Tuple;
 
-const table_update_q =
+const table_normalize_q =
     \\ALTER TABLE rss_item ADD COLUMN read_no integer DEFAULT 0;
 ;
 
@@ -32,6 +32,10 @@ const fetch_news_q =
     \\    LIMIT 1
     \\)
     \\ RETURNING rss_item.id, rss_item.title, rss_item.url, rss_item.read_no;
+;
+
+const table_mark_read_q =
+    \\UPDATE rss_item SET unread=0 WHERE url = ?;
 ;
 
 pub fn getDb(cache_path: [:0]const u8, write: bool, create: bool) !sqlite.Db {
@@ -72,7 +76,7 @@ pub fn getDbForConfig(
 
 pub fn normalizeCache(db: *sqlite.Db) !void {
     defer db.deinit();
-    try db.exec(table_update_q, .{}, .{});
+    try db.exec(table_normalize_q, .{}, .{});
 }
 
 /// Result of retrieval of the article data from db.
@@ -87,7 +91,10 @@ pub fn fetchArticle(
     max_age: u16,
 ) !?ArticleResult {
     var diags = sqlite.Diagnostics{};
-    var stmt = db.prepareWithDiags(fetch_news_q, .{ .diags = &diags }) catch |err| {
+    var stmt = db.prepareWithDiags(
+        fetch_news_q,
+        .{ .diags = &diags },
+    ) catch |err| {
         std.log.err("unable to prepare statement, got error {}. diagnostics: {s}", .{ err, diags });
         return err;
     };
@@ -114,4 +121,9 @@ pub fn fetchArticle(
         return .{ title, url };
     }
     return null;
+}
+
+pub fn markArticleRead(db: *sqlite.Db, url: []const u8) !void {
+    defer db.deinit();
+    try db.exec(table_mark_read_q, .{}, .{url});
 }

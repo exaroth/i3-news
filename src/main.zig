@@ -69,7 +69,7 @@ fn handleCommand(c: cli_args.Command) !void {
         .edit_config => |c_name| {
             try command.editConfig(c_name);
         },
-        .output_i3bar => |c_name| {
+        .output_i3blocks => |c_name| {
             try command.handleI3Blocks(c_name);
         },
         .output_polybar => |c_name| {
@@ -77,6 +77,12 @@ fn handleCommand(c: cli_args.Command) !void {
         },
         .output_i3status => |c_names| {
             try command.handleI3Status(c_names);
+        },
+        .output_waybar => |c_name| {
+            try command.handleWaybar(c_name);
+        },
+        .output_plain => |c_name| {
+            try command.handlePlainOutput(c_name);
         },
         .get_url => |c_name| {
             try command.getUrlForConfig(c_name);

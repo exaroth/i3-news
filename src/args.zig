@@ -13,10 +13,14 @@ pub const Command = union(enum) {
     edit_config: []const u8,
     /// Output headlines for i3status
     output_i3status: [][]const u8,
-    /// Output headlines for i3bar
-    output_i3bar: []const u8,
+    /// Output headlines for i3blocks
+    output_i3blocks: []const u8,
     /// Output headlines for polybar
     output_polybar: []const u8,
+    /// Waybar output
+    output_waybar: []const u8,
+    /// Plain output
+    output_plain: []const u8,
     /// Fallback command
     get_url: []const u8,
     /// Fallback command
@@ -35,7 +39,7 @@ pub const ErrorKind = union(enum) {
     /// When no configs were passed but expected
     no_configs_selected,
 
-    /// Error for case when number of configs selected is invalid (i3bar)
+    /// Error for case when number of configs selected is invalid (i3blocks/polybar)
     invalid_config_num,
 
     /// When no output formats were specified
@@ -138,10 +142,12 @@ pub const Options = struct {
     configs: ?ConfigArgs = null,
     /// Will trigger streaming output for i3status
     i3status: bool = false,
-    /// Will trigger status output for i3bar
-    i3bar: bool = false,
+    /// Will trigger status output for i3blocks
+    i3blocks: bool = false,
     /// Polybar output
     polybar: bool = false,
+    /// Waybar output
+    waybar: bool = false,
     /// Trigger creator allowing user to add new config
     @"add-config": ?ConfigArg = null,
     /// Remove existing config
@@ -150,6 +156,8 @@ pub const Options = struct {
     @"edit-config": ?ConfigArg = null,
     /// Retrieve url for the article
     @"get-url": bool = false,
+    /// Plain mode
+    plain: bool = false,
     /// Print debug
     debug: bool = false,
     /// Print help
@@ -159,19 +167,24 @@ pub const Options = struct {
     fn outOptNum(self: Options) u8 {
         var result: u8 = 0;
         var temp: u1 = 0;
-        temp = @bitCast(self.i3bar);
+        temp = @bitCast(self.i3blocks);
         result += temp;
         temp = @bitCast(self.i3status);
         result += temp;
         temp = @bitCast(self.polybar);
+        result += temp;
+        temp = @bitCast(self.waybar);
+        result += temp;
+        temp = @bitCast(self.plain);
         result += temp;
         return result;
     }
 
     pub const shorthands = .{
         .s = "i3status",
-        .b = "i3bar",
+        .b = "i3blocks",
         .p = "polybar",
+        .w = "waybar",
         .c = "configs",
         .h = "help",
         .a = "add-config",
@@ -184,11 +197,13 @@ pub const Options = struct {
             .@"add-config" = "Add new i3-news configuration",
             .@"rm-config" = "Remove existing configuration",
             .@"edit-config" = "Edit urls for given configuration",
-            .i3status = "Output headlines for i3status",
-            .i3bar = "Output headlines for i3bar",
-            .polybar = "Output headlines compatible with polybar",
-            .configs = "Configuration or configurations to use",
-            .@"get-url" = "Retrieve url for currently displayed headline (Polybar/Waybar only)",
+            .i3status = "I3status output",
+            .i3blocks = "I3blocks output",
+            .polybar = "Polybar output",
+            .waybar = "Waybar output",
+            .plain = "Plain output",
+            .configs = "Snippet configuration or configurations to use",
+            .@"get-url" = "Retrieve url for currently displayed headline",
             .debug = "Print debug info",
             .help = "Print help",
         },
@@ -264,21 +279,30 @@ pub inline fn processArgs() !CommandResult {
             opts.debug,
         };
     }
-    if (opts.i3bar) {
-        if (cfgs.items.len > 1) {
-            try raiseArgumentError(.invalid_config_num);
-        }
+    if (cfgs.items.len > 1) {
+        try raiseArgumentError(.invalid_config_num);
+    }
+    if (opts.i3blocks) {
         return .{
-            Command{ .output_i3bar = try argsAllocator.dupeZ(u8, cfgs.items[0].value) },
+            Command{ .output_i3blocks = try argsAllocator.dupeZ(u8, cfgs.items[0].value) },
             opts.debug,
         };
     }
     if (opts.polybar) {
-        if (cfgs.items.len > 1) {
-            try raiseArgumentError(.invalid_config_num);
-        }
         return .{
             Command{ .output_polybar = try argsAllocator.dupeZ(u8, cfgs.items[0].value) },
+            opts.debug,
+        };
+    }
+    if (opts.waybar) {
+        return .{
+            Command{ .output_waybar = try argsAllocator.dupeZ(u8, cfgs.items[0].value) },
+            opts.debug,
+        };
+    }
+    if (opts.plain) {
+        return .{
+            Command{ .output_plain = try argsAllocator.dupeZ(u8, cfgs.items[0].value) },
             opts.debug,
         };
     }

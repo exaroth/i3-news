@@ -8,6 +8,7 @@ const sqlite = @import("sqlite");
 const urls_f_name = "urls";
 const settings_f_name = "config";
 
+const Tuple = std.meta.Tuple;
 /// Create new config with given ID.
 pub fn createConfig(config_name: []const u8) !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
@@ -107,24 +108,29 @@ pub fn editConfig(config_id: []const u8) !void {
         return;
     }
     const p = [_][]const u8{ cfpath, urls_f_name };
-    const full_path = try std.fs.path.join(
+    const u_p = try std.fs.path.join(
         allocator,
         &p,
     );
-    try utils.openEditor(allocator, full_path);
+    const c = [_][]const u8{ cfpath, cache.cache_f_name };
+    const u_c = try std.fs.path.join(
+        allocator,
+        &c,
+    );
+    try utils.openEditor(allocator, u_p);
+    try out_file.print(
+        "Updating news cache, please wait...\n",
+        .{},
+    );
+    try utils.newsboatReload(allocator, u_c, u_p);
 }
 
-///Output i3bar article
-pub fn handleI3Blocks(config_id: []const u8) !void {
-    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
-    const allocator = gpa.allocator();
-    const out_file = std.io.getStdOut().writer();
-    const c = try config.Config.init(
-        allocator,
-        config_id,
-    );
+fn getArticleForConfig(allocator: std.mem.Allocator, c: *config.Config) !?Tuple(&.{
+    []const u8,
+    []const u8,
+}) {
     var db = try cache.getDbForConfig(
-        config_id,
+        c.id,
         allocator,
         true,
         false,
@@ -133,16 +139,29 @@ pub fn handleI3Blocks(config_id: []const u8) !void {
     errdefer c.saveUrlFileSafe(allocator, "about:blank");
     const article = try c.fetchArticle(&db, allocator);
     if (article != null) {
-        const title: []const u8, const url: []const u8 = article.?;
-        const formatted = try std.fmt.allocPrint(
-            allocator,
-            "{s}\n",
-            .{url},
-        );
-        try c.saveUrlFile(allocator, formatted);
-        try out_file.print("{s}\n{s}\n", .{ title, config_id });
+        _, const url: []const u8 = article.?;
+        try cache.markArticleRead(&db, url);
+        try c.saveUrlFile(allocator, url);
     } else {
         try c.saveUrlFile(allocator, "about:blank\n");
+    }
+    return article;
+}
+
+///Output i3bar article
+pub fn handleI3Blocks(config_id: []const u8) !void {
+    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
+    const allocator = gpa.allocator();
+    const out_file = std.io.getStdOut().writer();
+    var c = try config.Config.init(
+        allocator,
+        config_id,
+    );
+    const article = try getArticleForConfig(allocator, &c);
+    if (article != null) {
+        const title: []const u8, _ = article.?;
+        try out_file.print("{s}\n{s}\n", .{ title, config_id });
+    } else {
         try out_file.print("News empty\nNews empty\n", .{});
     }
     try out_file.print("{s}\n", .{
@@ -298,29 +317,61 @@ pub fn handlePolybar(config_id: []const u8) !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     const allocator = gpa.allocator();
     const out_file = std.io.getStdOut().writer();
-    const c = try config.Config.init(allocator, config_id);
-    var db = try cache.getDbForConfig(
-        config_id,
-        allocator,
-        true,
-        false,
-    );
-    defer db.deinit();
-    errdefer c.saveUrlFileSafe(allocator, "about:blank");
+    var c = try config.Config.init(allocator, config_id);
+    const article = try getArticleForConfig(allocator, &c);
     var title: []const u8 = "News empty";
-    const article = try c.fetchArticle(&db, allocator);
     if (article != null) {
-        title, const url: []const u8 = article.?;
-        const formatted = try std.fmt.allocPrint(
-            allocator,
-            "{s}\n",
-            .{url},
-        );
-        try c.saveUrlFile(allocator, formatted);
+        title, _ = article.?;
     }
-    const color = c.settings.outputColor();
 
-    try out_file.print("%{{F{s}}}{s}%{{F{s}}}\n", .{ color, title, color });
+    try out_file.print(
+        "%{{F{s}}}{s}%{{F-}}\n",
+        .{ c.settings.outputColor(), title },
+    );
+    return;
+}
+
+const waybarPayload = struct {
+    text: []const u8,
+    class: []const u8,
+};
+
+pub fn handleWaybar(config_id: []const u8) !void {
+    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
+    const allocator = gpa.allocator();
+    const out_file = std.io.getStdOut().writer();
+    var c = try config.Config.init(allocator, config_id);
+    const article = try getArticleForConfig(allocator, &c);
+    var title: []const u8 = "News empty";
+    if (article != null) {
+        title, _ = article.?;
+    }
+    const payload = waybarPayload{
+        .text = title,
+        .class = config_id,
+    };
+    const payload_s = try std.json.stringifyAlloc(
+        allocator,
+        payload,
+        .{},
+    );
+    defer allocator.free(payload_s);
+
+    try out_file.print("{s}\n", .{payload_s});
+    return;
+}
+
+pub fn handlePlainOutput(config_id: []const u8) !void {
+    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
+    const allocator = gpa.allocator();
+    const out_file = std.io.getStdOut().writer();
+    var c = try config.Config.init(allocator, config_id);
+    const article = try getArticleForConfig(allocator, &c);
+    var title: []const u8 = "News empty";
+    if (article != null) {
+        title, _ = article.?;
+    }
+    try out_file.print("{s}\n", .{title});
     return;
 }
 
