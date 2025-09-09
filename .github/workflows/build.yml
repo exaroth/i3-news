@@ -51,6 +51,10 @@ jobs:
           cp /snap/core20/current/usr/lib/x86_64-linux-gnu/libnettle.so.7.0 AppDir/usr/lib
           cp /snap/core20/current/usr/lib/x86_64-linux-gnu/libunistring.so.2 AppDir/usr/lib
           cp /snap/core20/current/usr/lib/x86_64-linux-gnu/libunistring.so.2.1.0 AppDir/usr/lib
+      - name: Download zscroll
+        run: |
+          wget -O ./AppDir/usr/local/bin/zscroll https://raw.githubusercontent.com/noctuid/zscroll/master/zscroll
+          chmod +x ./AppDir/usr/local/bin/zscroll
       - name: Build i3-news
         run: make build-release
       - name: Copy i3-news binary

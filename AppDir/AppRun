@@ -7,14 +7,25 @@ export LD_LIBRARY_PATH="$HERE"/usr/lib:"$LD_LIBRARY_PATH"
 export I3_NEWS_HOME=$HOME/.config/i3_news
 export I3_NEWS_BIN_PATH="$HERE"/usr/local/bin/i3_news
 export NEWSBOAT_BIN="$HERE"/usr/local/bin/newsboat
+export ZSCROLL_EXE="$HERE"/usr/local/bin/zscroll
 
 if [ -z ${I3_NEWS_BROWSER_CMD+x} ]; then
     export I3_NEWS_BROWSER_CMD=$BROWSER
 fi
+if [ -z ${ZSCROLL_INTERVAL+x} ]; then
+    export ZSCROLL_INTERVAL=10
+fi
+if [ -z ${ZSCROLL_DELAY+x} ]; then
+    export ZSCROLL_DELAY=0.6
+fi
+if [ -z ${ZSCROLL_WIDTH+x} ]; then
+    export ZSCROLL_WIDTH=40
+fi
 
-# TODO check for browser
 newsboat_reload() {
-    while pgrep newsboat > /dev/null; do sleep 2; done
+    if type pgrep > /dev/null; then
+        while pgrep newsboat > /dev/null; do sleep 2; done
+    fi
     mkdir -p $I3_NEWS_HOME;
     if [ -z "$( ls -A $I3_NEWS_HOME )" ]; then
         echo "No configurations found in " $I3_NEWS_HOME;
@@ -39,7 +50,15 @@ elif [ "$1" = "open" ]; then
     else
         xdg-open $url
     fi
-    $I3_NEWS_BROWSER_CMD $url
+elif [ "$1" = "zscroll" ]; then
+    all_args=("$@")
+    i3_news_command="$I3_NEWS_BIN_PATH --plain ${all_args[@]:1}"
+    $ZSCROLL_EXE -l $ZSCROLL_WIDTH \
+        --delay $ZSCROLL_DELAY \
+        --match-command "$i3_news_command" \
+        --update-check true \
+        --update-interval $ZSCROLL_INTERVAL "$i3_news_command" &
+    wait
 # i3 blocks handler
 elif [[ "${BLOCK_BUTTON}" -eq 1 ]]; then
     url="$($I3_NEWS_BIN_PATH --get-url -c $short_text)"
