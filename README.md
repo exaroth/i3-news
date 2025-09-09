@@ -96,13 +96,13 @@ Edit `i3` configuration (typically stored at `~/.config/i3/config`) and locate `
 status_command  i3status
 ```
 
-You can also output more than 1 snippet by passing comma delimited list of snippet names as part of `-c` parameter.
-
 entry, replace it with:
 
 ```
 status_command  i3status | /usr/local/bin/i3_news -s -c <snippet_name>
 ```
+
+You can also output more than 1 snippet by passing comma delimited list of snippet names as part of `-c` parameter.
 
 #### polybar
 
