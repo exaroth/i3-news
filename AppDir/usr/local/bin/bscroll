@@ -1,0 +1,85 @@
+#!/bin/bash
+# based on: https://github.com/Anachron/i3blocks/blob/master/blocks/scroll
+
+PROG="${1}"
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+BLOCK_PATH="${SCRIPT_DIR}/${PROG}"
+
+if [ -z ${BSCROLL_INTERVAL+x} ]; then
+    export BSCROLL_INTERVAL=16
+fi
+if [ -z ${BSCROLL_DELAY+x} ]; then
+    export BSCROLL_DELAY=0.5
+fi
+if [ -z ${BSCROLL_WIDTH+x} ]; then
+    export BSCROLL_WIDTH=60
+fi
+
+ADD_STR=" | "
+ADD_LENGTH=${#ADD_STR}
+OUT_TEXT=$(${PROG})
+
+CHECKSUM=$(echo "${PROG}-${BLOCK_INSTANCE}" | md5sum | awk '{print $1}')
+TMP_FILE="/tmp/.scroll-${CHECKSUM}"
+if [[ -f "${TMP_FILE}" ]]; then
+    OUT_TEXT=$(head -n 1 $TMP_FILE | tail -1)
+    SHORT_TEXT=$(head -n 2 $TMP_FILE | tail -1)
+    SCROLL_POS=$(head -n 3 $TMP_FILE | tail -1)
+    INS=$(head -n 4 $TMP_FILE | tail -1)
+else
+    RAW_TEXT=$(${PROG})
+    OUT_TEXT=$(printf %b "$RAW_TEXT" | sed -n -e 1p)
+    SHORT_TEXT=$(printf %b "$RAW_TEXT" | sed -n -e 2p)
+    INS=$(date +%s)
+    SCROLL_POS=0
+fi
+
+NOW=$(date +%s)
+if [[ $(($NOW - $INS)) -gt "${BSCROLL_INTERVAL}" ]]; then
+    RAW_TEXT=$(${PROG})
+    OUT_TEXT=$(printf %b "$RAW_TEXT" | sed -n -e 1p)
+    SHORT_TEXT=$(printf %b "$RAW_TEXT" | sed -n -e 2p)
+    INS=$(date +%s)
+    SCROLL_POS=0
+fi
+
+if [[ $? -ne 0 ]]; then
+    sleep 1
+    echo "${PROG}"
+    echo "${PROG}"
+    exit 33
+fi
+
+if [[ "${OUT_TEXT}" ]]; then
+
+  if [[ "$OUT_TEXT" = "No News" ]]; then
+    echo "<span font_family='monospace'>${OUT_TEXT}</span>"
+    echo "about:blank"
+    exit 0
+  fi
+  TEXT_LENGTH=${#OUT_TEXT}
+  MAX_OFFSET=$((TEXT_LENGTH +ADD_LENGTH -1))
+
+  # if [[ "${TEXT_LENGTH}" -lt "${BSCROLL_WIDTH}" ]]; then
+  #   BSCROLL_WIDTH="${TEXT_LENGTH}"
+  # fi
+
+  if [[ "${SCROLL_POS}" -gt "${MAX_OFFSET}" ]]; then
+    SCROLL_POS=0
+  fi
+
+  TEXT_LINE="${OUT_TEXT}${ADD_STR}${OUT_TEXT}${ADD_STR}${OUT_TEXT}"
+  TEXT_LINE=${TEXT_LINE:$SCROLL_POS:$BSCROLL_WIDTH}
+
+  echo "<span font_family='monospace'>${TEXT_LINE}</span>"
+  echo "${SHORT_TEXT}"
+  SCROLL_POS=$((SCROLL_POS +1))
+  echo "${OUT_TEXT}" > "${TMP_FILE}"
+  echo "${SHORT_TEXT}" >> "${TMP_FILE}"
+  echo "${SCROLL_POS}" >> "${TMP_FILE}"
+  echo "${INS}" >> "${TMP_FILE}"
+  sleep "${BSCROLL_DELAY}"
+else
+  sleep 1
+fi
