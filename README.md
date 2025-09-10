@@ -145,6 +145,40 @@ You can customize color rendering by editing `~/.config/waybar/style.css` and ad
 }
 ```
 
+### Scrolling text headlines
+
+`i3-news` ships with [zscroll](https://github.com/noctuid/zscroll) script which allows for easy incorporation of scrolling text headlines, this feature is only compatible with `polybar` and `waybar` plugins. In order to output headline snippet run:
+```
+i3_news zscroll -c <snippet_name>
+```
+Parameters of the scrolling snippets can be configured via environment variables:
+- `ZSCROLL_INTERVAL` - how often to refresh news headlines
+- `ZSCROLL_DELAY` - Controls scroll speed
+- `ZSCROLL_WIDTH` - Width of the snippet
+
+##### Polybar integration
+
+Reference configuration, note there's no need to include `interval` field for scrolling snippets.
+```
+    [module/i3-news-scroll]
+    type = custom/script
+    exec = ZSCROLL_DELAY=0.3 /usr/local/bin/i3_news zscroll -c <snippet_name>
+    click-left = /usr/local/bin/i3_news open -c <snippet_name>
+    tail = true
+    label = %output:0:40:...%
+```
+
+##### Waybar integration
+
+``` json
+    "custom/i3-news-scroll": {
+        "escape": "true",
+        "exec": "ZSCROLL_WIDTH=50 /usr/local/bin/i3_news zscroll -c <snippet_name>",
+        "max-length": 50,
+        "min-length": 50,
+        "on-click": "/usr/local/bin/i3_news open -c <snippet_name>"
+    }
+```
 
 ### Configuration
 
