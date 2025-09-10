@@ -1,4 +1,4 @@
-## I3 News
+## I3 News [![Licence](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE) [![Zig-0.14.1](https://img.shields.io/badge/zig-0.14.1%2B-orange.svg)](Zig-0.14.1)
 
 __I3 News__ let's you create interactive news headline snippets compatible with various i3/sway bar plugins, based on user defined RSS/Atom feeds. 
 
@@ -9,20 +9,33 @@ Compatibility list:
 - i3status
 - waybar
  
+#### Table of Contents
+<!--toc:start-->
+- [Installation](#installation)
+- [Usage](#usage)
+    - [i3blocks](#i3blocks)
+    - [i3status](#i3status)
+    - [Polybar](#polybar)
+    - [Waybar](#waybar)
+- [Scrolling headlines](#scrolling-text-headlines)
+    - [Polybar/Waybar](#polybarwaybar)
+    - [i3blocks](#i3blocks-1)
+- [Configuration](#configuration)
+<!--toc:end-->
 ### Installation
 > [!NOTE]
 > i3 news requires `fuse`/`libfuse` libraries installed in the system
 
 I3 news ships with 2 versions available:
 
-- Light version - this includes only i3 news binary and supplementary scripts, it does not contain [Newsboat](https://newsboat.org/) RSS reader required for retrieval of RSS data, you will need to install Newsboat package system wide (__Note:__ Snapcraft version is not supported)(__*Recommended*__)
+- __Light__ - Includes only i3 news binary and supplementary scripts, it does not contain [Newsboat](https://newsboat.org/) RSS reader required for retrieval of RSS data, you will need to install Newsboat package system wide (Note: Snapcraft version is not supported) (__Recommended__)
  
  
 To install this version execute:
 ``` bash
 sh -c "$(curl -fsSL https://raw.githubusercontent.com/exaroth/i3-news/master/install.sh)"
 ```
-- Self contained version - this is the same as above but ships with Newsboat app and all required shared libraries included. To install run:
+- __Self Contained__  - this is the same as above but ships with Newsboat app and all required shared libraries included. To install run:
  
 ``` bash
 sh -c "$(curl -fsSL https://raw.githubusercontent.com/exaroth/i3-news/master/install_full.sh)"
@@ -30,7 +43,7 @@ sh -c "$(curl -fsSL https://raw.githubusercontent.com/exaroth/i3-news/master/ins
 
 You can also download `i3_news` executables from [releases](https://github.com/exaroth/i3-news/releases) page.
 
-Next update your crontab to set up regular RSS feed reloads , eg to update feeds every 20 minutes:
+Following the installation update your crontab to set up regular RSS feed reloads , eg to update feeds every 20 minutes:
 
 
 `crontab -e`
@@ -171,6 +184,8 @@ Parameters of the scrolling snippets can be configured via environment variables
 - `ZSCROLL_DELAY` - Controls scroll speed
 - `ZSCROLL_WIDTH` - Width of the snippet
 
+Scrolling plugins work best with monotype fonts.
+
 ##### Polybar integration
 
 Reference configuration, note there's no need to include `interval` field for scrolling snippets.
@@ -183,12 +198,24 @@ Reference configuration, note there's no need to include `interval` field for sc
     label = %output:0:40:...%
 ```
 
+##### Waybar integration
+
+``` json
+    "custom/i3-news-scroll": {
+        "escape": "true",
+        "exec": "ZSCROLL_WIDTH=50 /usr/local/bin/i3_news zscroll -c <snippet_name>",
+        "max-length": 50,
+        "min-length": 50,
+        "on-click": "/usr/local/bin/i3_news open -c <snippet_name>"
+    }
+```
+
 #### I3blocks
 
 I3 news comes supplied with dedicated command `bscroll` to handle scrolling headlines for i3bar, to use it execute:
 
 ```
-/usr/local/bin/i3_news bscroll -c <snippet_name>
+i3_news bscroll -c <snippet_name>
 ```
 
 Command defaults can be overriden using following env vars:

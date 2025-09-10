@@ -77,6 +77,7 @@ elif [ "$1" = "zscroll" ]; then
         --update-interval $ZSCROLL_INTERVAL "$i3_news_command" &
     wait
 elif [ "$1" = "bscroll" ]; then
+    all_args=("$@")
     params="${all_args[@]:1}"
     BSCROLL_WIDTH=$BSCROLL_WIDTH \
     BSCROLL_INTERVAL=$BSCROLL_INTERVAL \
