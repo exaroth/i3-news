@@ -16,6 +16,7 @@ Compatibility list:
 ``` bash
 sh -c "$(curl -fsSL https://raw.githubusercontent.com/exaroth/i3-news/master/install.sh)"
 ```
+or download `i3_news` binary from [releases](https://github.com/exaroth/i3-news/releases) page.
 
 Next update your crontab to set up regular RSS feed reloads , eg to update feeds every 20 minutes:
 
