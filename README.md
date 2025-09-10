@@ -13,10 +13,22 @@ Compatibility list:
 > [!NOTE]
 > i3 news requires `fuse`/`libfuse` libraries installed in the system
 
+I3 news ships with 2 versions available:
+
+- Light version - this includes only i3 news binary and supplementary scripts, it does not contain [Newsboat](https://newsboat.org/) RSS reader required for retrieval of RSS data, you will need to install Newsboat package system wide (__Note:__ Snapcraft version is not supported)(__*Recommended*__)
+ 
+ 
+To install this version execute:
 ``` bash
 sh -c "$(curl -fsSL https://raw.githubusercontent.com/exaroth/i3-news/master/install.sh)"
 ```
-or download `i3_news` binary from [releases](https://github.com/exaroth/i3-news/releases) page.
+- Self contained version - this is the same as above but ships with Newsboat app and all required shared libraries included. To install run:
+ 
+``` bash
+sh -c "$(curl -fsSL https://raw.githubusercontent.com/exaroth/i3-news/master/install_full.sh)"
+```
+
+You can also download `i3_news` executables from [releases](https://github.com/exaroth/i3-news/releases) page.
 
 Next update your crontab to set up regular RSS feed reloads , eg to update feeds every 20 minutes:
 
@@ -110,12 +122,12 @@ You can also output more than 1 snippet by passing comma delimited list of snipp
 Edit polybar configuration file (usually stored at `~/.config/polybar/config.ini`), add following entry:
 
 ``` ini
-[module/i3-news]
-type = custom/script
-exec = /usr/local/bin/i3_news -p -c <snippet_name>
-tail = true
-interval = 10
-click-left = /usr/local/bin/i3_news open -c <snippet_name>
+    [module/i3-news]
+    type = custom/script
+    exec = /usr/local/bin/i3_news -p -c <snippet_name>
+    tail = true
+    interval = 10
+    click-left = /usr/local/bin/i3_news open -c <snippet_name>
 ```
 then update either `modules-left` or `modules-right` entry with `i3-news`.
 
@@ -127,13 +139,13 @@ Similarly to `i3blocks` integration you can customize browser used for opening h
 Edit waybar configuraton (typically stored at `~/.config/waybar/config`), add following entry
 
 ``` json
-"custom/i3-news": {
-    "exec": "/usr/local/bin/i3_news -w -c <snippet_name>",
-    "return-type": "json",
-    "interval": 10,
-    "tooltip": false,
-    "on-click": "/usr/local/bin/i3_news open -c <snippet_name>"
-}
+    "custom/i3-news": {
+        "exec": "/usr/local/bin/i3_news -w -c <snippet_name>",
+        "return-type": "json",
+        "interval": 10,
+        "tooltip": false,
+        "on-click": "/usr/local/bin/i3_news open -c <snippet_name>"
+    }
 ```
 
 and update `modules-right`, `modules-left` or `modules-center` with `custom/i3-news` entry.
@@ -147,6 +159,8 @@ You can customize color rendering by editing `~/.config/waybar/style.css` and ad
 ```
 
 ### Scrolling text headlines
+
+#### Polybar/Waybar
 
 `i3-news` ships with [zscroll](https://github.com/noctuid/zscroll) script which allows for easy incorporation of scrolling text headlines, this feature is only compatible with `polybar` and `waybar` plugins. In order to output headline snippet run:
 ```
@@ -169,17 +183,30 @@ Reference configuration, note there's no need to include `interval` field for sc
     label = %output:0:40:...%
 ```
 
-##### Waybar integration
+#### I3blocks
 
-``` json
-    "custom/i3-news-scroll": {
-        "escape": "true",
-        "exec": "ZSCROLL_WIDTH=50 /usr/local/bin/i3_news zscroll -c <snippet_name>",
-        "max-length": 50,
-        "min-length": 50,
-        "on-click": "/usr/local/bin/i3_news open -c <snippet_name>"
-    }
+I3 news comes supplied with dedicated command `bscroll` to handle scrolling headlines for i3bar, to use it execute:
+
 ```
+/usr/local/bin/i3_news bscroll -c <snippet_name>
+```
+
+Command defaults can be overriden using following env vars:
+
+- `BSCROLL_INTERVAL` - Refresh rate for the headlines
+- `BSCROLL_DELAY` - Scroll speed
+- `BSCROLL_WIDTH` - Width of the snippet
+
+Example usage in i3blocks config (`markup=pango` and `interval=persist` settings are required)
+
+```
+[News]
+command=BSCROLL_INTERVAL=20 /usr/local/bin/i3_news bscroll -c <snippet_name>
+markup=pango
+color=#FEC925
+interval=persist
+```
+
 
 ### Configuration
 
@@ -190,5 +217,5 @@ Configuration for each snippet is stored at `~/.config/i3_news/<snippet_name>/co
 - `refresh-interval` - (i3status only) refresh rate when displaying the headlines
 
 ### License
-
 See `LICENSE` file for details
+

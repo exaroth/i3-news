@@ -61,6 +61,7 @@ jobs:
           cp /snap/core20/current/usr/lib/x86_64-linux-gnu/libunistring.so.2 AppDir/usr/lib
           cp /snap/core20/current/usr/lib/x86_64-linux-gnu/libunistring.so.2.1.0 AppDir/usr/lib
           cp VERSION AppDir/
+          cp scripts/bscroll AppDir/usr/local/bin
         if: contains(matrix.version.type, 'self_contained')
 
       - name: Copy required files (normal)
@@ -70,6 +71,7 @@ jobs:
           cp /snap/core20/current/usr/lib/x86_64-linux-gnu/libsqlite3.so.0 AppDir/usr/lib
           cp /snap/core20/current/usr/lib/x86_64-linux-gnu/libsqlite3.so.0.8.6 AppDir/usr/lib
           cp VERSION AppDir/
+          cp scripts/bscroll AppDir/usr/local/bin
         if: contains(matrix.version.type, 'normal')
 
       - name: Download zscroll

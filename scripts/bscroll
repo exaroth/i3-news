@@ -1,0 +1,92 @@
+#!/bin/bash
+# based on: https://github.com/Anachron/i3blocks/blob/master/blocks/scroll
+
+if ! type i3_news > /dev/null; then
+    echo "i3_news binary not found in the system"
+    exit 1
+fi
+
+
+PARAMS="$@"
+
+if [ -z ${BSCROLL_INTERVAL+x} ]; then
+    export BSCROLL_INTERVAL=16
+fi
+if [ -z ${BSCROLL_DELAY+x} ]; then
+    export BSCROLL_DELAY=0.5
+fi
+if [ -z ${BSCROLL_WIDTH+x} ]; then
+    export BSCROLL_WIDTH=60
+fi
+if [ -z ${I3_NEWS_BIN_PATH+x} ]; then
+    export I3_NEWS_BIN_PATH=i3_news
+fi
+
+ADD_STR=" | "
+ADD_LENGTH=${#ADD_STR}
+PROG="$I3_NEWS_BIN_PATH --plain $PARAMS"
+CHECKSUM=$(echo "${PARAMS}" | md5sum | awk '{print $1}')
+TMP_FILE="/tmp/.i3-news-scroll-${CHECKSUM}"
+
+while true :
+do
+    if [[ -f "${TMP_FILE}" ]]; then
+        OUT_TEXT=$(head -n 1 $TMP_FILE | tail -1)
+        SCROLL_POS=$(head -n 2 $TMP_FILE | tail -1)
+        INS=$(head -n 3 $TMP_FILE | tail -1)
+    else
+        OUT_TEXT=$(${PROG})
+        INS=$(date +%s)
+        SCROLL_POS=0
+    fi
+
+    NOW=$(date +%s)
+    if [[ $(($NOW - $INS)) -gt "${BSCROLL_INTERVAL}" ]]; then
+        OUT_TEXT=$(${PROG})
+        INS=$(date +%s)
+        SCROLL_POS=0
+    fi
+
+    if [[ $? -ne 0 ]]; then
+        sleep 1
+        echo "${PROG}"
+        exit 33
+    fi
+
+    if [[ "${OUT_TEXT}" ]]; then
+        if [[ "$OUT_TEXT" = "No News" ]]; then
+            echo "<span font_family='monospace'>${OUT_TEXT}</span>"
+            sleep 1
+        fi
+        TEXT_LENGTH=${#OUT_TEXT}
+        MAX_OFFSET=$((TEXT_LENGTH +ADD_LENGTH -1))
+
+
+        if [[ "${SCROLL_POS}" -gt "${MAX_OFFSET}" ]]; then
+            SCROLL_POS=0
+        fi
+
+        TEXT_LINE="${OUT_TEXT}${ADD_STR}${OUT_TEXT}${ADD_STR}${OUT_TEXT}"
+        TEXT_LINE=${TEXT_LINE:$SCROLL_POS:$BSCROLL_WIDTH}
+
+        echo "<span font_family='monospace'>${TEXT_LINE}</span>"
+        SCROLL_POS=$((SCROLL_POS +1))
+        echo "${OUT_TEXT}" > "${TMP_FILE}"
+        echo "${SCROLL_POS}" >> "${TMP_FILE}"
+        echo "${INS}" >> "${TMP_FILE}"
+        read -t ${BSCROLL_DELAY} click
+        if [[ $click -eq 1 ]]; then
+            cmd="$I3_NEWS_BIN_PATH --get-url $PARAMS"
+            url=$($cmd)
+            if [ -z ${I3_NEWS_BROWSER_CMD+x} ]; then
+                xdg-open $url &
+            else
+                $I3_NEWS_BROWSER_CMD $url &
+            fi
+            continue
+        fi
+    else
+        sleep 1
+    fi
+done
+

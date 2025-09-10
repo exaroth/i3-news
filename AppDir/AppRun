@@ -77,16 +77,13 @@ elif [ "$1" = "zscroll" ]; then
         --update-interval $ZSCROLL_INTERVAL "$i3_news_command" &
     wait
 elif [ "$1" = "bscroll" ]; then
-    all_args=("$@")
-    i3_news_command="$I3_NEWS_BIN_PATH -b ${all_args[@]:1}"
-    cache_key="-b ${all_args[@]:1}"
-    if ! eval $i3_news_command > /dev/null; then
-        exit
-    fi
+    params="${all_args[@]:1}"
     BSCROLL_WIDTH=$BSCROLL_WIDTH \
     BSCROLL_INTERVAL=$BSCROLL_INTERVAL \
     BSCROLL_DELAY=$BSCROLL_DELAY \
-    $BSCROLL_SCRIPT "$i3_news_command" "$cache_key"
+    I3_NEWS_BIN_PATH=$I3_NEWS_BIN_PATH \
+    I3_NEWS_BROWSER_CMD=$I3_NEWS_BROWSER_CMD \
+    $BSCROLL_SCRIPT "$params"
 # i3 blocks handler
 elif [[ "${BLOCK_BUTTON}" -eq 1 ]]; then
     url="$($I3_NEWS_BIN_PATH --get-url -c $short_text)"
