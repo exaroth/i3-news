@@ -6,7 +6,6 @@ export LD_LIBRARY_PATH="$HERE"/usr/lib:"$LD_LIBRARY_PATH"
 
 export I3_NEWS_HOME=$HOME/.config/i3_news
 export I3_NEWS_BIN_PATH="$HERE"/usr/local/bin/i3_news
-export NEWSBOAT_BIN="$HERE"/usr/local/bin/newsboat
 export ZSCROLL_EXE="python3 $HERE"/usr/local/bin/zscroll
 export BSCROLL_SCRIPT="$HERE"/usr/local/bin/bscroll
 
@@ -32,6 +31,11 @@ if [ -z ${BSCROLL_WIDTH+x} ]; then
     export BSCROLL_WIDTH=60
 fi
 
+if ! type newsboat > /dev/null; then
+    echo "Newsboat binary not found in the system"
+    exit 1
+fi
+
 newsboat_reload() {
     if type pgrep > /dev/null; then
         while pgrep newsboat > /dev/null; do sleep 2; done
@@ -45,7 +49,7 @@ newsboat_reload() {
     do
         dir=${dir%*/}
         echo "i3-news: Reloading news for config ${dir##*/}"
-        $NEWSBOAT_BIN -x reload -c ${dir}/cache.db -u ${dir}/urls
+        newsboat -x reload -c ${dir}/cache.db -u ${dir}/urls
     done
 }
 
@@ -75,13 +79,14 @@ elif [ "$1" = "zscroll" ]; then
 elif [ "$1" = "bscroll" ]; then
     all_args=("$@")
     i3_news_command="$I3_NEWS_BIN_PATH -b ${all_args[@]:1}"
+    cache_key="-b ${all_args[@]:1}"
     if ! eval $i3_news_command > /dev/null; then
         exit
     fi
     BSCROLL_WIDTH=$BSCROLL_WIDTH \
     BSCROLL_INTERVAL=$BSCROLL_INTERVAL \
     BSCROLL_DELAY=$BSCROLL_DELAY \
-    $BSCROLL_SCRIPT "$i3_news_command"
+    $BSCROLL_SCRIPT "$i3_news_command" "$cache_key"
 # i3 blocks handler
 elif [[ "${BLOCK_BUTTON}" -eq 1 ]]; then
     url="$($I3_NEWS_BIN_PATH --get-url -c $short_text)"

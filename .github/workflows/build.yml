@@ -9,6 +9,15 @@ jobs:
   build:
     name: build
     runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        version:
+          - type: normal
+            binary_name: i3_news
+
+          - type: self_contained
+            binary_name: i3_news_self_contained
 
     steps:
       - uses: actions/checkout@v4
@@ -23,7 +32,7 @@ jobs:
         run: |
           wget -nv -c https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage
           chmod a+x ./appimagetool-x86_64.AppImage
-      - name: Copy required files
+      - name: Copy required files (self contained)
         run: |
           mkdir -p AppDir/usr/
           cp -Rf /snap/newsboat/current/usr/lib/x86_64-linux-gnu AppDir/usr/lib
@@ -52,6 +61,17 @@ jobs:
           cp /snap/core20/current/usr/lib/x86_64-linux-gnu/libunistring.so.2 AppDir/usr/lib
           cp /snap/core20/current/usr/lib/x86_64-linux-gnu/libunistring.so.2.1.0 AppDir/usr/lib
           cp VERSION AppDir/
+        if: contains(matrix.version.type, 'self_contained')
+
+      - name: Copy required files (normal)
+        run: |
+          mkdir -p AppDir/usr/local/bin
+          mkdir -p AppDir/usr/lib
+          cp /snap/core20/current/usr/lib/x86_64-linux-gnu/libsqlite3.so.0 AppDir/usr/lib
+          cp /snap/core20/current/usr/lib/x86_64-linux-gnu/libsqlite3.so.0.8.6 AppDir/usr/lib
+          cp VERSION AppDir/
+        if: contains(matrix.version.type, 'normal')
+
       - name: Download zscroll
         run: |
           wget -O ./AppDir/usr/local/bin/zscroll https://raw.githubusercontent.com/noctuid/zscroll/master/zscroll
@@ -72,6 +92,6 @@ jobs:
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           file: i3-news-x86_64.AppImage
-          asset_name: i3_news
+          asset_name: ${{ matrix.version.binary_name }}
           tag: latest
           overwrite: true

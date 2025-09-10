@@ -2,6 +2,7 @@
 # based on: https://github.com/Anachron/i3blocks/blob/master/blocks/scroll
 
 PROG="${1}"
+CHECKSUM_P="${2}"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BLOCK_PATH="${SCRIPT_DIR}/${PROG}"
@@ -20,7 +21,7 @@ ADD_STR=" | "
 ADD_LENGTH=${#ADD_STR}
 OUT_TEXT=$(${PROG})
 
-CHECKSUM=$(echo "${PROG}-${BLOCK_INSTANCE}" | md5sum | awk '{print $1}')
+CHECKSUM=$(echo "${CHECKSUM_P}-${BLOCK_INSTANCE}" | md5sum | awk '{print $1}')
 TMP_FILE="/tmp/.scroll-${CHECKSUM}"
 if [[ -f "${TMP_FILE}" ]]; then
     OUT_TEXT=$(head -n 1 $TMP_FILE | tail -1)
