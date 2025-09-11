@@ -93,6 +93,10 @@ do
             else
                 $I3_NEWS_BROWSER_CMD $url &
             fi
+            OUT_TEXT=$(${PROG})
+            INS=$(date +%s)
+            SCROLL_POS=0
+            printf "%s\n" "${OUT_TEXT}" "${SCROLL_POS}" "${INS}" > ${TMP_FILE}
             continue
         fi
     else
