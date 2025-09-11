@@ -59,6 +59,13 @@ do
             sleep 1
         fi
         TEXT_LENGTH=${#OUT_TEXT}
+
+        if [[ "$TEXT_LENGTH" -lt "$BSCROLL_WIDTH" ]]; then
+            pad=$(($BSCROLL_WIDTH - $TEXT_LENGTH))
+            printf "<span font_family='monospace'>%s%0*s</span>\n" "$OUT_TEXT" $pad " ";
+            sleep ${BSCROLL_DELAY}
+            continue
+        fi
         MAX_OFFSET=$((TEXT_LENGTH +ADD_LENGTH -1))
 
 
@@ -71,9 +78,11 @@ do
 
         echo "<span font_family='monospace'>${TEXT_LINE}</span>"
         SCROLL_POS=$((SCROLL_POS +1))
-        echo "${OUT_TEXT}" > "${TMP_FILE}"
-        echo "${SCROLL_POS}" >> "${TMP_FILE}"
-        echo "${INS}" >> "${TMP_FILE}"
+        # echo "${OUT_TEXT}" > "${TMP_FILE}"
+        # echo "${SCROLL_POS}" >> "${TMP_FILE}"
+        # echo "${INS}" >> "${TMP_FILE}"
+        printf "%s\n" "${OUT_TEXT}" "${SCROLL_POS}" "${INS}" > ${TMP_FILE}
+
         read -t ${BSCROLL_DELAY} click
         if [[ $click -eq 1 ]]; then
             cmd="$I3_NEWS_BIN_PATH --get-url $PARAMS"
