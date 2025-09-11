@@ -68,22 +68,21 @@ do
             printf "<span font_family='monospace'>%0*s%s%0*s</span>\n" $lpad " " "$OUT_TEXT" $pad " ";
             SCROLL_POS=0
             printf "%s\n" "${OUT_TEXT}" "${SCROLL_POS}" "${INS}" > ${TMP_FILE}
-            sleep ${BSCROLL_DELAY}
-            continue
+        else
+            MAX_OFFSET=$((TEXT_LENGTH +ADD_LENGTH -1))
+
+
+            if [[ "${SCROLL_POS}" -gt "${MAX_OFFSET}" ]]; then
+                SCROLL_POS=0
+            fi
+
+            TEXT_LINE="${OUT_TEXT}${ADD_STR}${OUT_TEXT}${ADD_STR}${OUT_TEXT}"
+            TEXT_LINE=${TEXT_LINE:$SCROLL_POS:$BSCROLL_WIDTH}
+
+            echo "<span font_family='monospace'>${TEXT_LINE}</span>"
+            SCROLL_POS=$((SCROLL_POS +1))
+            printf "%s\n" "${OUT_TEXT}" "${SCROLL_POS}" "${INS}" > ${TMP_FILE}
         fi
-        MAX_OFFSET=$((TEXT_LENGTH +ADD_LENGTH -1))
-
-
-        if [[ "${SCROLL_POS}" -gt "${MAX_OFFSET}" ]]; then
-            SCROLL_POS=0
-        fi
-
-        TEXT_LINE="${OUT_TEXT}${ADD_STR}${OUT_TEXT}${ADD_STR}${OUT_TEXT}"
-        TEXT_LINE=${TEXT_LINE:$SCROLL_POS:$BSCROLL_WIDTH}
-
-        echo "<span font_family='monospace'>${TEXT_LINE}</span>"
-        SCROLL_POS=$((SCROLL_POS +1))
-        printf "%s\n" "${OUT_TEXT}" "${SCROLL_POS}" "${INS}" > ${TMP_FILE}
 
         read -t ${BSCROLL_DELAY} click
         if [[ $click -eq 1 ]]; then
