@@ -28,7 +28,7 @@ const fetch_news_q =
     \\WHERE rss_item.id IN (
     \\    SELECT id FROM query
     \\    WHERE query.read_no=(SELECT MIN(query.read_no) FROM query)
-    \\    ORDER BY query.pub_date DESC
+    \\    ORDER BY RANDOM()
     \\    LIMIT 1
     \\)
     \\ RETURNING rss_item.id, rss_item.title, rss_item.url, rss_item.read_no;
