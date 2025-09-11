@@ -24,7 +24,7 @@ const fetch_news_q =
     \\    AND items.unread=1
     \\    
     \\)
-    \\UPDATE rss_item SET read_no=read_no+1
+    \\UPDATE rss_item SET read_no=(SELECT MIN(query.read_no) from query)+1
     \\WHERE rss_item.id IN (
     \\    SELECT id FROM query
     \\    WHERE query.read_no=(SELECT MIN(query.read_no) FROM query)

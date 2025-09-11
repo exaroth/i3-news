@@ -45,6 +45,7 @@ do
         OUT_TEXT=$(${PROG})
         INS=$(date +%s)
         SCROLL_POS=0
+        $OUT_TEXT=$(echo $OUT_TEXT | sed "s/\"/'/g" )
     fi
 
     if [[ $? -ne 0 ]]; then
