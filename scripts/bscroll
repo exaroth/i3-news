@@ -61,8 +61,13 @@ do
         TEXT_LENGTH=${#OUT_TEXT}
 
         if [[ "$TEXT_LENGTH" -lt "$BSCROLL_WIDTH" ]]; then
-            pad=$(($BSCROLL_WIDTH - $TEXT_LENGTH))
-            printf "<span font_family='monospace'>%s%0*s</span>\n" "$OUT_TEXT" $pad " ";
+            pad_base=$(($BSCROLL_WIDTH - $TEXT_LENGTH))
+            pad=$(($pad_base / 2))
+            rem=$(($pad % 2))
+            lpad=$(($pad + $rem))
+            printf "<span font_family='monospace'>%0*s%s%0*s</span>\n" $lpad " " "$OUT_TEXT" $pad " ";
+            SCROLL_POS=0
+            printf "%s\n" "${OUT_TEXT}" "${SCROLL_POS}" "${INS}" > ${TMP_FILE}
             sleep ${BSCROLL_DELAY}
             continue
         fi
@@ -78,9 +83,6 @@ do
 
         echo "<span font_family='monospace'>${TEXT_LINE}</span>"
         SCROLL_POS=$((SCROLL_POS +1))
-        # echo "${OUT_TEXT}" > "${TMP_FILE}"
-        # echo "${SCROLL_POS}" >> "${TMP_FILE}"
-        # echo "${INS}" >> "${TMP_FILE}"
         printf "%s\n" "${OUT_TEXT}" "${SCROLL_POS}" "${INS}" > ${TMP_FILE}
 
         read -t ${BSCROLL_DELAY} click
