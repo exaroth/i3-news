@@ -96,6 +96,25 @@ elif [[ "${BLOCK_BUTTON}" -eq 1 ]]; then
     $I3_NEWS_BIN_PATH -b -c $short_text
 elif [ "$1" = "version" ]; then
     cat "$HERE"/VERSION
+elif [ "$1" = "--help" ] || [ "$1" = "-h" ]  ; then
+    echo "Usage: i3news ?<command> <options>
+
+Commands: open|reload|zscroll|bscroll|version
+
+Options:
+  -c, --configs       Snippet configuration or configurations to use
+  -s, --i3status      I3status output
+  -b, --i3blocks      I3blocks output
+  -p, --polybar       Polybar output
+  -w, --waybar        Waybar output
+  -a, --add-config    Add new i3-news configuration
+  -r, --rm-config     Remove existing configuration
+  -e, --edit-config   Edit urls for given configuration
+      --get-url       Retrieve url for currently displayed headline
+      --plain         Plain output
+      --debug         Print debug info
+  -h, --help          Print help
+    "
 else
     $I3_NEWS_BIN_PATH $@
 fi
