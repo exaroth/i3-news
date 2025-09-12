@@ -1,5 +1,11 @@
 ## I3 News [![Licence](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE) [![Zig-0.14.1](https://img.shields.io/badge/zig-0.14.1%2B-orange.svg)](Zig-0.14.1)
 
+<img align="left" width="600" src="assets/i3blocks.gif"><br/><br/><br/>
+
+
+<img align="left" width="600" src="assets/waybar.gif"><br/><br/>
+
+
 __I3 News__ let's you create interactive news headline snippets compatible with various i3/sway bar plugins, based on user defined RSS/Atom feeds. 
 
 Compatibility list:
@@ -55,7 +61,9 @@ Following the installation update your crontab to set up regular RSS feed reload
 ### Usage
 
 ```
-Usage: i3news
+Usage: i3news ?<command> <options>
+
+Commands: open|reload|zscroll|bscroll|version
 
 Options:
   -c, --configs       Snippet configuration or configurations to use
