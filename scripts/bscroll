@@ -66,8 +66,10 @@ do
             pad=$(($pad_base / 2))
             rem=$(($pad % 2))
             lpad=$(($pad + $rem))
-            printf "<span font_family='monospace'>%0*s%s%0*s</span>\n" $lpad " " "$OUT_TEXT" $pad " ";
+            TEXT_LINE=$(printf "%0*s%s%0*s" $lpad " " "$OUT_TEXT" $BSCROLL_WIDTH " ");
             SCROLL_POS=0
+            TEXT_LINE=${TEXT_LINE:$SCROLL_POS:$BSCROLL_WIDTH}
+            echo "<span font_family='monospace'>${TEXT_LINE}</span>"
             printf "%s\n" "${OUT_TEXT}" "${SCROLL_POS}" "${INS}" > ${TMP_FILE}
         else
             MAX_OFFSET=$((TEXT_LENGTH +ADD_LENGTH -1))
