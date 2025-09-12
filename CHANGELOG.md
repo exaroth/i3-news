@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Vacuum cache during feed reload
 ### Fixed
 - Fix install path in installation scripts
+ 
 ## [0.2.0] 2025-12-09
 ### Added
 - Initial version
