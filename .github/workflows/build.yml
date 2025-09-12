@@ -4,6 +4,11 @@ on:
   push:
     branches:
       - master
+      - develop
+    tags:        
+      - 'v*'  
+  pull_request:
+    types: [opened, reopened]
 
 jobs:
   build:
@@ -97,3 +102,33 @@ jobs:
           asset_name: ${{ matrix.version.binary_name }}
           tag: latest
           overwrite: true
+
+      - name: Upload AppImage (stable)
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: i3-news-x86_64.AppImage
+          asset_name: ${{ matrix.version.binary_name }}
+          tag: stable
+          overwrite: true
+        if: github.event.client_payload.ref == 'refs/heads/master'
+
+      - name: Upload AppImage (tag)
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: i3-news-x86_64.AppImage
+          asset_name: ${{ matrix.version.binary_name }}
+          tag: ${{ github.event.client_payload.ref }}
+          overwrite: true
+        if: startsWith(github.event.client_payload.ref, 'refs/tags/')
+
+      - name: Upload AppImage (nightly)
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: i3-news-x86_64.AppImage
+          asset_name: ${{ matrix.version.binary_name }}
+          tag: nightly
+          overwrite: true
+        if: github.event.client_payload.ref == 'refs/heads/develop'
