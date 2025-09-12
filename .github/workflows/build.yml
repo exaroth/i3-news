@@ -120,7 +120,7 @@ jobs:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           file: i3-news-x86_64.AppImage
           asset_name: ${{ matrix.version.binary_name }}
-          tag: ${{ github.event.client_payload.ref }}
+          tag: ${{ github.ref }}
         if: startsWith(github.ref, 'refs/tags/')
 
       - name: Upload AppImage (nightly)
