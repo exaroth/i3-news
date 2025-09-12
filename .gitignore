@@ -5,3 +5,4 @@ zig-out
 .zig-cache
 tempenv
 appimage-build
+build
