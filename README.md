@@ -1,4 +1,4 @@
-## I3 News [![Licence](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE) [![Zig-0.14.1](https://img.shields.io/badge/zig-0.14.1%2B-orange.svg)](Zig-0.14.1)
+# I3 News [![Licence](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE) [![Zig-0.14.1](https://img.shields.io/badge/zig-0.14.1%2B-orange.svg)](Zig-0.14.1)
 
 <img align="left" width="600" src="assets/i3blocks.gif"><br/><br/><br/>
 
@@ -18,6 +18,7 @@ Compatibility list:
 #### Table of Contents
 <!--toc:start-->
 - [Installation](#installation)
+    - [Building from source](#building-from-source)
 - [Usage](#usage)
     - [i3blocks](#i3blocks)
     - [i3status](#i3status)
