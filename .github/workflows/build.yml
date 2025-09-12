@@ -87,7 +87,7 @@ jobs:
       - name: Download zscroll
         run: |
           wget -O ./AppDir/usr/local/bin/zscroll https://raw.githubusercontent.com/noctuid/zscroll/master/zscroll
-          chmod +x ./AppDir/usr/local/bin/zscrol
+          chmod +x ./AppDir/usr/local/bin/zscroll
 
       - name: Build i3-news
         run: make build-release
