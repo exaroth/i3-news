@@ -22,7 +22,7 @@ pub inline fn genRandomString(comptime len: u8) [len]u8 {
 /// Open file using default editor.
 pub fn openEditor(allocator: std.mem.Allocator, fpath: []const u8) !void {
     var v_process = std.process.Child.init(
-        &[_][]const u8{ "vim", "-o", fpath, "+3" },
+        &[_][]const u8{ "vi", "+3", fpath },
         allocator,
     );
     try v_process.spawn();
