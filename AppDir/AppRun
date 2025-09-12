@@ -49,7 +49,7 @@ newsboat_reload() {
     do
         dir=${dir%*/}
         echo "i3-news: Reloading news for config ${dir##*/}"
-        newsboat -x reload -c ${dir}/cache.db -u ${dir}/urls
+        newsboat -x reload -c ${dir}/cache.db -u ${dir}/urls --vacuum
     done
 }
 
