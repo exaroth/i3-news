@@ -58,6 +58,12 @@ Following the installation update your crontab to set up regular RSS feed reload
 */20 * * * * /usr/local/bin/i3_news reload
 ```
  
+#### Building from source
+
+__Note__: Supported zig versions - `0.14.1`/`0.15.0`
+
+Clone the repository and run `make build-appimage` to compile the source and build AppImage for the executable.
+
 ### Usage
 
 ```
