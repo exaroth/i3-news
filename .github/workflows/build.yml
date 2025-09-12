@@ -26,17 +26,22 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+
       - uses: mlugg/setup-zig@v2
         with:
           version: 0.14.1
+
       - name: Install deps
         run: sudo apt-get update && sudo apt-get install desktop-file-utils libfuse2 snapd 
+
       - name: Install newsboat
         run: sudo snap install newsboat
+
       - name: Download appimage build tool
         run: |
           wget -nv -c https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage
           chmod a+x ./appimagetool-x86_64.AppImage
+
       - name: Copy required files (self contained)
         run: |
           mkdir -p AppDir/usr/
@@ -82,26 +87,19 @@ jobs:
       - name: Download zscroll
         run: |
           wget -O ./AppDir/usr/local/bin/zscroll https://raw.githubusercontent.com/noctuid/zscroll/master/zscroll
-          chmod +x ./AppDir/usr/local/bin/zscroll
+          chmod +x ./AppDir/usr/local/bin/zscrol
+
       - name: Build i3-news
         run: make build-release
+
       - name: Copy i3-news binary
         run: cp zig-out/bin/i3_news AppDir/usr/local/bin
+
       - name: Replace usr references
         run: |
           pushd AppDir
           find usr/ -type f -executable -exec sed -i -e "s|/usr|././|g" {} \;
           popd
-      - name: Build appimage
-        run: ./appimagetool-x86_64.AppImage AppDir
-      - name: Upload AppImage
-        uses: svenstaro/upload-release-action@v2
-        with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: i3-news-x86_64.AppImage
-          asset_name: ${{ matrix.version.binary_name }}
-          tag: latest
-          overwrite: true
 
       - name: Upload AppImage (stable)
         uses: svenstaro/upload-release-action@v2
@@ -111,7 +109,7 @@ jobs:
           asset_name: ${{ matrix.version.binary_name }}
           tag: stable
           overwrite: true
-        if: github.event.client_payload.ref == 'refs/heads/master'
+        if: github.ref == 'refs/heads/master'
 
       - name: Upload AppImage (tag)
         uses: svenstaro/upload-release-action@v2
@@ -120,8 +118,7 @@ jobs:
           file: i3-news-x86_64.AppImage
           asset_name: ${{ matrix.version.binary_name }}
           tag: ${{ github.event.client_payload.ref }}
-          overwrite: true
-        if: startsWith(github.event.client_payload.ref, 'refs/tags/')
+        if: startsWith(github.ref, 'refs/tags/')
 
       - name: Upload AppImage (nightly)
         uses: svenstaro/upload-release-action@v2
@@ -131,4 +128,4 @@ jobs:
           asset_name: ${{ matrix.version.binary_name }}
           tag: nightly
           overwrite: true
-        if: github.event.client_payload.ref == 'refs/heads/develop'
+        if: github.ref == 'refs/heads/develop'
