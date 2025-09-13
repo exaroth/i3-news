@@ -12,7 +12,6 @@ const table_normalize_q =
 const fetch_news_q =
     \\WITH query (id, feed, title, pub_date, read_no)
     \\AS (
-    \\
     \\    SELECT items.id as item_id,
     \\        feed.title as feed_title,
     \\        items.title as item_title,
@@ -39,7 +38,6 @@ const fetch_news_q =
 const fetch_news_q_random =
     \\WITH query (id, feed, title, pub_date, read_no)
     \\AS (
-    \\
     \\    SELECT items.id as item_id,
     \\        feed.title as feed_title,
     \\        items.title as item_title,
@@ -62,7 +60,6 @@ const fetch_news_q_random =
 const fetch_news_q_latest =
     \\WITH query (id, feed, title, pub_date, read_no)
     \\AS (
-    \\
     \\    SELECT items.id as item_id,
     \\        feed.title as feed_title,
     \\        items.title as item_title,
@@ -134,19 +131,61 @@ pub const ArticleResult = Tuple(&.{
     []const u8,
 });
 
+fn get_fetch_article_stmt(db: *sqlite.Db) !sqlite.DynamicStatement {
+    std.log.debug("Retrieving article using normal strategy", .{});
+    var diags = sqlite.Diagnostics{};
+    const stmt = db.prepareDynamicWithDiags(
+        fetch_news_q,
+        .{ .diags = &diags },
+    ) catch |err| {
+        std.log.err("Unable to prepare statement, got error {}. diagnostics: {s}", .{ err, diags });
+        return err;
+    };
+    return stmt;
+}
+
+fn get_fetch_article_stmt_random(db: *sqlite.Db) !sqlite.DynamicStatement {
+    std.log.debug("Retrieving article using random strategy", .{});
+    var diags = sqlite.Diagnostics{};
+    const stmt = db.prepareDynamicWithDiags(
+        fetch_news_q_random,
+        .{ .diags = &diags },
+    ) catch |err| {
+        std.log.err("Unable to random fetch statement, got error {}. diagnostics: {s}", .{ err, diags });
+        return err;
+    };
+    return stmt;
+}
+
+fn get_fetch_article_stmt_latest(db: *sqlite.Db) !sqlite.DynamicStatement {
+    std.log.debug("Retrieving article using latest strategy", .{});
+    var diags = sqlite.Diagnostics{};
+    const stmt = db.prepareDynamicWithDiags(
+        fetch_news_q_random,
+        .{ .diags = &diags },
+    ) catch |err| {
+        std.log.err("Unable to latest fetch statement, got error {}. diagnostics: {s}", .{ err, diags });
+        return err;
+    };
+    return stmt;
+}
+
 pub fn fetchArticle(
     db: *sqlite.Db,
     allocator: std.mem.Allocator,
     max_age: u16,
+    random: bool,
+    latest: bool,
 ) !?ArticleResult {
-    var diags = sqlite.Diagnostics{};
-    var stmt = db.prepareWithDiags(
-        fetch_news_q,
-        .{ .diags = &diags },
-    ) catch |err| {
-        std.log.err("unable to prepare statement, got error {}. diagnostics: {s}", .{ err, diags });
-        return err;
-    };
+    var stmt_maybe: ?sqlite.DynamicStatement = null;
+    if (random) {
+        stmt_maybe = try get_fetch_article_stmt_random(db);
+    } else if (latest) {
+        stmt_maybe = try get_fetch_article_stmt_latest(db);
+    } else {
+        stmt_maybe = try get_fetch_article_stmt(db);
+    }
+    var stmt = stmt_maybe.?;
     defer stmt.deinit();
     const t = try std.fmt.allocPrint(
         allocator,

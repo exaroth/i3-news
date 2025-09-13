@@ -45,6 +45,8 @@ pub const Config = struct {
         self: Self,
         db: *sqlite.Db,
         allocator: std.mem.Allocator,
+        random: bool,
+        latest: bool,
     ) !?Tuple(&.{
         []const u8,
         []const u8,
@@ -54,6 +56,8 @@ pub const Config = struct {
             db,
             allocator,
             max_age,
+            random,
+            latest,
         );
     }
 

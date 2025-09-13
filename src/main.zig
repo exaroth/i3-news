@@ -70,19 +70,39 @@ fn handleCommand(c: cli_args.Command) !void {
             try command.editConfig(c_name);
         },
         .output_i3blocks => |params| {
-            try command.handleI3Blocks(params.config_id);
+            try command.handleI3Blocks(
+                params.config_id,
+                params.random,
+                params.latest,
+            );
         },
         .output_polybar => |params| {
-            try command.handlePolybar(params.config_id);
+            try command.handlePolybar(
+                params.config_id,
+                params.random,
+                params.latest,
+            );
         },
         .output_i3status => |params| {
-            try command.handleI3Status(params.config_ids);
+            try command.handleI3Status(
+                params.config_ids,
+                params.random,
+                params.latest,
+            );
         },
         .output_waybar => |params| {
-            try command.handleWaybar(params.config_id);
+            try command.handleWaybar(
+                params.config_id,
+                params.random,
+                params.latest,
+            );
         },
         .output_plain => |params| {
-            try command.handlePlainOutput(params.config_id);
+            try command.handlePlainOutput(
+                params.config_id,
+                params.random,
+                params.latest,
+            );
         },
         .get_url => |c_name| {
             try command.getUrlForConfig(c_name);
