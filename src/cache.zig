@@ -23,7 +23,7 @@ const fetch_news_q =
     \\    AND items.unread=1
     \\)
     \\UPDATE rss_item SET read_no=(
-    \\    SELECT MIN(read_no) from query WHERE read_no > (
+    \\    SELECT COALESCE(MIN(read_no), 1) from query WHERE read_no > (
     \\      SELECT MIN(query.read_no) from query)
     \\    ) + 1
     \\WHERE rss_item.id IN (
