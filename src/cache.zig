@@ -131,40 +131,40 @@ pub const ArticleResult = Tuple(&.{
     []const u8,
 });
 
-fn get_fetch_article_stmt(db: *sqlite.Db) !sqlite.DynamicStatement {
+fn getFetchArticleStmt(db: *sqlite.Db) !sqlite.DynamicStatement {
     std.log.debug("Retrieving article using normal strategy", .{});
     var diags = sqlite.Diagnostics{};
     const stmt = db.prepareDynamicWithDiags(
         fetch_news_q,
         .{ .diags = &diags },
     ) catch |err| {
-        std.log.err("Unable to prepare statement, got error {}. diagnostics: {s}", .{ err, diags });
+        std.log.err("Stmt error, err {}. diag: {s}", .{ err, diags });
         return err;
     };
     return stmt;
 }
 
-fn get_fetch_article_stmt_random(db: *sqlite.Db) !sqlite.DynamicStatement {
+fn getFetchArticleStmtRandom(db: *sqlite.Db) !sqlite.DynamicStatement {
     std.log.debug("Retrieving article using random strategy", .{});
     var diags = sqlite.Diagnostics{};
     const stmt = db.prepareDynamicWithDiags(
         fetch_news_q_random,
         .{ .diags = &diags },
     ) catch |err| {
-        std.log.err("Unable to random fetch statement, got error {}. diagnostics: {s}", .{ err, diags });
+        std.log.err("Stmt error, err {}. diag: {s}", .{ err, diags });
         return err;
     };
     return stmt;
 }
 
-fn get_fetch_article_stmt_latest(db: *sqlite.Db) !sqlite.DynamicStatement {
+fn getFetchArticleStmtLatest(db: *sqlite.Db) !sqlite.DynamicStatement {
     std.log.debug("Retrieving article using latest strategy", .{});
     var diags = sqlite.Diagnostics{};
     const stmt = db.prepareDynamicWithDiags(
         fetch_news_q_random,
         .{ .diags = &diags },
     ) catch |err| {
-        std.log.err("Unable to latest fetch statement, got error {}. diagnostics: {s}", .{ err, diags });
+        std.log.err("Stmt error, err {}. diag: {s}", .{ err, diags });
         return err;
     };
     return stmt;
@@ -179,11 +179,11 @@ pub fn fetchArticle(
 ) !?ArticleResult {
     var stmt_maybe: ?sqlite.DynamicStatement = null;
     if (random) {
-        stmt_maybe = try get_fetch_article_stmt_random(db);
+        stmt_maybe = try getFetchArticleStmtRandom(db);
     } else if (latest) {
-        stmt_maybe = try get_fetch_article_stmt_latest(db);
+        stmt_maybe = try getFetchArticleStmtLatest(db);
     } else {
-        stmt_maybe = try get_fetch_article_stmt(db);
+        stmt_maybe = try getFetchArticleStmt(db);
     }
     var stmt = stmt_maybe.?;
     defer stmt.deinit();
@@ -192,6 +192,7 @@ pub fn fetchArticle(
         "-{d} hours",
         .{max_age},
     );
+    defer allocator.free(t);
     const row = try stmt.oneAlloc(
         struct {
             id: usize,
@@ -204,9 +205,17 @@ pub fn fetchArticle(
         .{ .t = t },
     );
     if (row) |r| {
+        std.log.debug("Row: {d};{s};{s};{d}", .{
+            r.id,
+            r.title,
+            r.url,
+            r.read_no,
+        });
         const title = try allocator.dupe(u8, r.title);
         const url = try allocator.dupe(u8, r.url);
         return .{ title, url };
+    } else {
+        std.log.debug("Empty row", .{});
     }
     return null;
 }
