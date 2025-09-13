@@ -161,7 +161,7 @@ fn getFetchArticleStmtLatest(db: *sqlite.Db) !sqlite.DynamicStatement {
     std.log.debug("Retrieving article using latest strategy", .{});
     var diags = sqlite.Diagnostics{};
     const stmt = db.prepareDynamicWithDiags(
-        fetch_news_q_random,
+        fetch_news_q_latest,
         .{ .diags = &diags },
     ) catch |err| {
         std.log.err("Stmt error, err {}. diag: {s}", .{ err, diags });
