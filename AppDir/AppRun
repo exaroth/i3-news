@@ -112,6 +112,8 @@ Options:
   -e, --edit-config   Edit urls for given configuration
       --get-url       Retrieve url for currently displayed headline
       --plain         Plain output
+      --random        Retrieve headlines using random strategy
+      --latest        Retrieve headlines prioritising latest articles
       --debug         Print debug info
   -h, --help          Print help
     "

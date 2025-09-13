@@ -69,20 +69,40 @@ fn handleCommand(c: cli_args.Command) !void {
         .edit_config => |c_name| {
             try command.editConfig(c_name);
         },
-        .output_i3blocks => |c_name| {
-            try command.handleI3Blocks(c_name);
+        .output_i3blocks => |params| {
+            try command.handleI3Blocks(
+                params.config_id,
+                params.random,
+                params.latest,
+            );
         },
-        .output_polybar => |c_name| {
-            try command.handlePolybar(c_name);
+        .output_polybar => |params| {
+            try command.handlePolybar(
+                params.config_id,
+                params.random,
+                params.latest,
+            );
         },
-        .output_i3status => |c_names| {
-            try command.handleI3Status(c_names);
+        .output_i3status => |params| {
+            try command.handleI3Status(
+                params.config_ids,
+                params.random,
+                params.latest,
+            );
         },
-        .output_waybar => |c_name| {
-            try command.handleWaybar(c_name);
+        .output_waybar => |params| {
+            try command.handleWaybar(
+                params.config_id,
+                params.random,
+                params.latest,
+            );
         },
-        .output_plain => |c_name| {
-            try command.handlePlainOutput(c_name);
+        .output_plain => |params| {
+            try command.handlePlainOutput(
+                params.config_id,
+                params.random,
+                params.latest,
+            );
         },
         .get_url => |c_name| {
             try command.getUrlForConfig(c_name);
