@@ -125,7 +125,12 @@ pub fn editConfig(config_id: []const u8) !void {
     try utils.newsboatReload(allocator, u_c, u_p);
 }
 
-fn getArticleForConfig(allocator: std.mem.Allocator, c: *config.Config) !?Tuple(&.{
+fn getArticleForConfig(
+    allocator: std.mem.Allocator,
+    c: *config.Config,
+    random: bool,
+    latest: bool,
+) !?Tuple(&.{
     []const u8,
     []const u8,
 }) {
@@ -137,7 +142,12 @@ fn getArticleForConfig(allocator: std.mem.Allocator, c: *config.Config) !?Tuple(
     );
     defer db.deinit();
     errdefer c.saveUrlFileSafe(allocator, "about:blank\n");
-    const article = try c.fetchArticle(&db, allocator);
+    const article = try c.fetchArticle(
+        &db,
+        allocator,
+        random,
+        latest,
+    );
     if (article != null) {
         _, const url: []const u8 = article.?;
         try c.saveUrlFile(allocator, url);
@@ -148,7 +158,7 @@ fn getArticleForConfig(allocator: std.mem.Allocator, c: *config.Config) !?Tuple(
 }
 
 ///Output i3bar article
-pub fn handleI3Blocks(config_id: []const u8) !void {
+pub fn handleI3Blocks(config_id: []const u8, random: bool, latest: bool) !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     const allocator = gpa.allocator();
     const out_file = std.io.getStdOut().writer();
@@ -156,7 +166,7 @@ pub fn handleI3Blocks(config_id: []const u8) !void {
         allocator,
         config_id,
     );
-    const article = try getArticleForConfig(allocator, &c);
+    const article = try getArticleForConfig(allocator, &c, random, latest);
     if (article != null) {
         const title: []const u8, _ = article.?;
         try out_file.print("{s}\n{s}\n", .{ title, config_id });
@@ -176,7 +186,7 @@ const I3StatusConfig = struct {
 };
 
 ///Output i3status articles
-pub fn handleI3Status(config_ids: [][]const u8) !void {
+pub fn handleI3Status(config_ids: [][]const u8, random: bool, latest: bool) !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     const allocator = gpa.allocator();
     const out_file = std.io.getStdOut().writer();
@@ -251,7 +261,12 @@ pub fn handleI3Status(config_ids: [][]const u8) !void {
                         continue;
                     }
                 }
-                const article = try c.fetchArticle(&c_d[idx], allocator);
+                const article = try c.fetchArticle(
+                    &c_d[idx],
+                    allocator,
+                    random,
+                    latest,
+                );
                 var title: []const u8 = "";
                 if (article != null) {
                     title, _ = article.?;
@@ -312,12 +327,12 @@ pub fn handleI3Status(config_ids: [][]const u8) !void {
 }
 
 // Polybar handler.
-pub fn handlePolybar(config_id: []const u8) !void {
+pub fn handlePolybar(config_id: []const u8, random: bool, latest: bool) !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     const allocator = gpa.allocator();
     const out_file = std.io.getStdOut().writer();
     var c = try config.Config.init(allocator, config_id);
-    const article = try getArticleForConfig(allocator, &c);
+    const article = try getArticleForConfig(allocator, &c, random, latest);
     var title: []const u8 = "News empty";
     if (article != null) {
         title, _ = article.?;
@@ -335,12 +350,12 @@ const waybarPayload = struct {
     class: []const u8,
 };
 
-pub fn handleWaybar(config_id: []const u8) !void {
+pub fn handleWaybar(config_id: []const u8, random: bool, latest: bool) !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     const allocator = gpa.allocator();
     const out_file = std.io.getStdOut().writer();
     var c = try config.Config.init(allocator, config_id);
-    const article = try getArticleForConfig(allocator, &c);
+    const article = try getArticleForConfig(allocator, &c, random, latest);
     var title: []const u8 = "News empty";
     if (article != null) {
         title, _ = article.?;
@@ -360,12 +375,12 @@ pub fn handleWaybar(config_id: []const u8) !void {
     return;
 }
 
-pub fn handlePlainOutput(config_id: []const u8) !void {
+pub fn handlePlainOutput(config_id: []const u8, random: bool, latest: bool) !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     const allocator = gpa.allocator();
     const out_file = std.io.getStdOut().writer();
     var c = try config.Config.init(allocator, config_id);
-    const article = try getArticleForConfig(allocator, &c);
+    const article = try getArticleForConfig(allocator, &c, random, latest);
     var title: []const u8 = "News empty";
     if (article != null) {
         title, _ = article.?;
