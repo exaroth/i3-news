@@ -7,9 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ## [0.3.1] 2025-13-09
+### Fixed
 - Fix coalescing null values for new cache when using standard headline retrieval
  
 ## [0.3.0] 2025-13-09
+### Added
 - Add --random and --latest options for headline retrieval
 
 ## [0.2.1] 2025-12-09
