@@ -12,15 +12,35 @@ pub const Command = union(enum) {
     /// Edit config urls
     edit_config: []const u8,
     /// Output headlines for i3status
-    output_i3status: [][]const u8,
+    output_i3status: struct {
+        config_ids: [][]const u8,
+        random: bool,
+        latest: bool,
+    },
     /// Output headlines for i3blocks
-    output_i3blocks: []const u8,
+    output_i3blocks: struct {
+        config_id: []const u8,
+        random: bool,
+        latest: bool,
+    },
     /// Output headlines for polybar
-    output_polybar: []const u8,
+    output_polybar: struct {
+        config_id: []const u8,
+        random: bool,
+        latest: bool,
+    },
     /// Waybar output
-    output_waybar: []const u8,
+    output_waybar: struct {
+        config_id: []const u8,
+        random: bool,
+        latest: bool,
+    },
     /// Plain output
-    output_plain: []const u8,
+    output_plain: struct {
+        config_id: []const u8,
+        random: bool,
+        latest: bool,
+    },
     /// Fallback command
     get_url: []const u8,
     /// Fallback command
@@ -158,6 +178,10 @@ pub const Options = struct {
     @"get-url": bool = false,
     /// Plain mode
     plain: bool = false,
+    /// Retrieve headlines using random strategy
+    random: bool = false,
+    /// Retrieve headlines using latest strategy
+    latest: bool = false,
     /// Print debug
     debug: bool = false,
     /// Print help
@@ -204,6 +228,8 @@ pub const Options = struct {
             .plain = "Plain output",
             .configs = "Snippet configuration or configurations to use",
             .@"get-url" = "Retrieve url for currently displayed headline",
+            .random = "Retrieve headlines using random strategy",
+            .latest = "Retrieve headlines prioritising latest articles",
             .debug = "Print debug info",
             .help = "Print help",
         },
@@ -275,7 +301,13 @@ pub inline fn processArgs() !CommandResult {
             tc[idx] = try argsAllocator.dupeZ(u8, c.value);
         }
         return .{
-            Command{ .output_i3status = tc },
+            Command{
+                .output_i3status = .{
+                    .config_ids = tc,
+                    .random = opts.random,
+                    .latest = opts.latest,
+                },
+            },
             opts.debug,
         };
     }
@@ -284,25 +316,61 @@ pub inline fn processArgs() !CommandResult {
     }
     if (opts.i3blocks) {
         return .{
-            Command{ .output_i3blocks = try argsAllocator.dupeZ(u8, cfgs.items[0].value) },
+            Command{
+                .output_i3blocks = .{
+                    .config_id = try argsAllocator.dupeZ(
+                        u8,
+                        cfgs.items[0].value,
+                    ),
+                    .random = opts.random,
+                    .latest = opts.latest,
+                },
+            },
             opts.debug,
         };
     }
     if (opts.polybar) {
         return .{
-            Command{ .output_polybar = try argsAllocator.dupeZ(u8, cfgs.items[0].value) },
+            Command{
+                .output_polybar = .{
+                    .config_id = try argsAllocator.dupeZ(
+                        u8,
+                        cfgs.items[0].value,
+                    ),
+                    .random = opts.random,
+                    .latest = opts.latest,
+                },
+            },
             opts.debug,
         };
     }
     if (opts.waybar) {
         return .{
-            Command{ .output_waybar = try argsAllocator.dupeZ(u8, cfgs.items[0].value) },
+            Command{
+                .output_waybar = .{
+                    .config_id = try argsAllocator.dupeZ(
+                        u8,
+                        cfgs.items[0].value,
+                    ),
+                    .random = opts.random,
+                    .latest = opts.latest,
+                },
+            },
             opts.debug,
         };
     }
     if (opts.plain) {
         return .{
-            Command{ .output_plain = try argsAllocator.dupeZ(u8, cfgs.items[0].value) },
+            Command{
+                .output_plain = .{
+                    .config_id = try argsAllocator.dupeZ(
+                        u8,
+                        cfgs.items[0].value,
+                    ),
+                    .random = opts.random,
+                    .latest = opts.latest,
+                },
+            },
             opts.debug,
         };
     }

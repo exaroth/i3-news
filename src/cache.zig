@@ -22,12 +22,58 @@ const fetch_news_q =
     \\    JOIN rss_feed as feed on feed.rssurl = items.feedurl
     \\    WHERE datetime(items.pubDate, 'unixepoch') >= datetime('now', ?)
     \\    AND items.unread=1
-    \\    
     \\)
     \\UPDATE rss_item SET read_no=(
     \\    SELECT MIN(read_no) from query WHERE read_no > (
     \\      SELECT MIN(query.read_no) from query)
     \\    ) + 1
+    \\WHERE rss_item.id IN (
+    \\    SELECT id FROM query
+    \\    WHERE query.read_no=(SELECT MIN(query.read_no) FROM query)
+    \\    ORDER BY query.pub_date DESC
+    \\    LIMIT 1
+    \\)
+    \\ RETURNING rss_item.id, rss_item.title, rss_item.url, rss_item.read_no;
+;
+
+const fetch_news_q_random =
+    \\WITH query (id, feed, title, pub_date, read_no)
+    \\AS (
+    \\
+    \\    SELECT items.id as item_id,
+    \\        feed.title as feed_title,
+    \\        items.title as item_title,
+    \\        items.pubDate as pub_date,
+    \\        items.read_no as read_no
+    \\        FROM rss_item as items
+    \\    JOIN rss_feed as feed on feed.rssurl = items.feedurl
+    \\    WHERE datetime(items.pubDate, 'unixepoch') >= datetime('now', ?)
+    \\    AND items.unread=1
+    \\)
+    \\UPDATE rss_item SET read_no=read_no+1
+    \\WHERE rss_item.id IN (
+    \\    SELECT id FROM query
+    \\    ORDER BY RANDOM()
+    \\    LIMIT 1
+    \\)
+    \\ RETURNING rss_item.id, rss_item.title, rss_item.url, rss_item.read_no;
+;
+
+const fetch_news_q_latest =
+    \\WITH query (id, feed, title, pub_date, read_no)
+    \\AS (
+    \\
+    \\    SELECT items.id as item_id,
+    \\        feed.title as feed_title,
+    \\        items.title as item_title,
+    \\        items.pubDate as pub_date,
+    \\        items.read_no as read_no
+    \\        FROM rss_item as items
+    \\    JOIN rss_feed as feed on feed.rssurl = items.feedurl
+    \\    WHERE datetime(items.pubDate, 'unixepoch') >= datetime('now', ?)
+    \\    AND items.unread=1
+    \\)
+    \\UPDATE rss_item SET read_no=read_no+1
     \\WHERE rss_item.id IN (
     \\    SELECT id FROM query
     \\    WHERE query.read_no=(SELECT MIN(query.read_no) FROM query)
