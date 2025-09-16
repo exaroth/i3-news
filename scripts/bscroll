@@ -50,6 +50,7 @@ do
         OUT_TEXT=$(echo $OUT_TEXT | sed -e "s/&/and/g" -e "s/</lt/g" -e "s/>/gt/g")
         OUT_TEXT=$(echo $OUT_TEXT | LC_ALL=UTF-8 sed -e "s/[$(printf $EMOJI)]//g")
         OUT_TEXT=$(echo $OUT_TEXT | sed -e "s/#[a-zA-Z0-9]*//g")
+        OUT_TEXT=$(echo $OUT_TEXT | xargs)
     fi
 
     if [[ $? -ne 0 ]]; then
