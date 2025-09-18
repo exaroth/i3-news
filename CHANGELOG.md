@@ -6,6 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+## [0.3.2] 2025-18-09
+### Changed
+- Remove emojis/hashtags from output text (bscroll)
+- Add option to enable/disable marking article as read when opened in the browser
+ 
 ## [0.3.1] 2025-13-09
 ### Fixed
 - Fix coalescing null values for new cache when using standard headline retrieval

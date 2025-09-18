@@ -1,6 +1,6 @@
 .{
     .name = .i3_news,
-    .version = "0.3.1",
+    .version = "0.3.2",
     .fingerprint = 0x8778bd1d85911a54, // Changing this has security and trust implications.
     .minimum_zig_version = "0.15.0-dev.377+f01833e03",
     .dependencies = .{
