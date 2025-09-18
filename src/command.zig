@@ -403,7 +403,9 @@ pub fn getUrlForConfig(config_id: []const u8) !void {
     defer db.deinit();
     const c = try config.Config.init(allocator, config_id);
     const url = try c.readUrlFile(allocator);
-    try cache.markArticleRead(&db, url);
+    if (c.settings.markAsReadOnOpen()) {
+        try cache.markArticleRead(&db, url);
+    }
     try out_file.print("{s}\n", .{url});
     return;
 }

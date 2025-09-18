@@ -259,6 +259,7 @@ Configuration for each snippet is stored at `~/.config/i3_news/<snippet_name>/co
 - `max-article-age` - amount of hours in the past for which to display headlines for
 - `output-color` - text color for given snippet (hex based)
 - `refresh-interval` - (i3status only) refresh rate when displaying the headlines
+- `mark-as-read-on-open` - Set to `no` to disable marking articles as read when opening headline url in the browser. Headlines marked as read will be excluded when retrieving article data.
 
 ### License
 See `LICENSE` file for details

@@ -11,7 +11,10 @@ pub const default_settings =
     \\# Defines how often news will change when using i3-news with i3status
     \\# (in seconds)
     \\refresh-interval 10
-    \\
+    \\# Defines whether to mark articles as read when opening headline url 
+    \\# in the browser, articles marked as read will be excluded when retrieving
+    \\# headline data.
+    \\mark-as-read-on-open yes
 ;
 
 /// ConfigSettings is used for parsing
@@ -82,6 +85,14 @@ pub const ConfigSettings = struct {
             return 10;
         }
         return try std.fmt.parseInt(u64, interval.?, 10);
+    }
+
+    pub inline fn markAsReadOnOpen(self: Self) bool {
+        const mark_as_read = self.contents.?.get("mark-as-read-on-open");
+        if (mark_as_read == null) {
+            return false;
+        }
+        return std.mem.eql(u8, mark_as_read.?, "yes");
     }
 };
 

@@ -221,6 +221,7 @@ pub fn fetchArticle(
 }
 
 pub fn markArticleRead(db: *sqlite.Db, url: []const u8) !void {
+    std.log.debug("Marking url {s} as read", .{url});
     var stmt = try db.prepare(table_mark_read_q);
     defer stmt.deinit();
     try stmt.exec(.{}, .{ .url = url });
