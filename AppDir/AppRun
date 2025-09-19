@@ -4,13 +4,13 @@ HERE="$(dirname "$(readlink -f "${0}")")"
 export PATH="$HERE"/bin:"$HERE"/usr/bin:"$PATH"
 export LD_LIBRARY_PATH="$HERE"/usr/lib:"$LD_LIBRARY_PATH"
 
-export I3_NEWS_HOME=$HOME/.config/i3_news
+export I3_NEWS_HOME="$HOME"/.config/i3_news
 export I3_NEWS_BIN_PATH="$HERE"/usr/local/bin/i3_news
 export ZSCROLL_EXE="python3 $HERE"/usr/local/bin/zscroll
 export BSCROLL_SCRIPT="$HERE"/usr/local/bin/bscroll
 
 if [ -z ${I3_NEWS_BROWSER_CMD+x} ]; then
-    export I3_NEWS_BROWSER_CMD=$BROWSER
+    export I3_NEWS_BROWSER_CMD="$BROWSER"
 fi
 if [ -z ${ZSCROLL_INTERVAL+x} ]; then
     export ZSCROLL_INTERVAL=10
@@ -40,16 +40,16 @@ newsboat_reload() {
     if type pgrep > /dev/null; then
         while pgrep newsboat > /dev/null; do sleep 2; done
     fi
-    mkdir -p $I3_NEWS_HOME;
-    if [ -z "$( ls -A $I3_NEWS_HOME )" ]; then
-        echo "No configurations found in " $I3_NEWS_HOME;
+    mkdir -p "$I3_NEWS_HOME";
+    if [ -z "$( ls -A "$I3_NEWS_HOME" )" ]; then
+        echo "No configurations found in " "$I3_NEWS_HOME";
         return
     fi
-    for dir in $I3_NEWS_HOME/*/
+    for dir in "$I3_NEWS_HOME"/*/
     do
         dir=${dir%*/}
         echo "i3-news: Reloading news for config ${dir##*/}"
-        newsboat -x reload -c ${dir}/cache.db -u ${dir}/urls
+        newsboat -x reload -c "${dir}"/cache.db -u "${dir}"/urls
     done
 }
 
@@ -59,22 +59,22 @@ if [ "$1" = "reload" ]; then
 elif [ "$1" = "open" ]; then
     all_args=("$@")
     url="$($I3_NEWS_BIN_PATH --get-url ${all_args[@]:1})"
-    if [ -n ${I3_NEWS_BROWSER_CMD+x} ]; then
-        $I3_NEWS_BROWSER_CMD $url
+    if [ -n "${I3_NEWS_BROWSER_CMD+x}" ]; then
+        $I3_NEWS_BROWSER_CMD "$url"
     else
-        xdg-open $url
+        xdg-open "$url"
     fi
 elif [ "$1" = "zscroll" ]; then
     all_args=("$@")
     i3_news_command="$I3_NEWS_BIN_PATH --plain ${all_args[@]:1}"
-    if ! eval $i3_news_command > /dev/null; then
+    if ! eval "$i3_news_command" > /dev/null; then
         exit
     fi
-    $ZSCROLL_EXE -l $ZSCROLL_WIDTH \
-        --delay $ZSCROLL_DELAY \
+    $ZSCROLL_EXE -l "$ZSCROLL_WIDTH" \
+        --delay "$ZSCROLL_DELAY" \
         --match-command "$i3_news_command" \
         --update-check true \
-        --update-interval $ZSCROLL_INTERVAL "$i3_news_command" &
+        --update-interval "$ZSCROLL_INTERVAL" "$i3_news_command" &
     wait
 elif [ "$1" = "bscroll" ]; then
     all_args=("$@")
@@ -88,12 +88,12 @@ elif [ "$1" = "bscroll" ]; then
 # i3 blocks handler
 elif [[ "${BLOCK_BUTTON}" -eq 1 ]]; then
     url="$($I3_NEWS_BIN_PATH --get-url -c $short_text)"
-    if [ -n ${I3_NEWS_BROWSER_CMD+x} ]; then
-        $I3_NEWS_BROWSER_CMD $url
+    if [ -n "${I3_NEWS_BROWSER_CMD+x}" ]; then
+        $I3_NEWS_BROWSER_CMD "$url"
     else
-        xdg-open $url
+        xdg-open "$url"
     fi
-    $I3_NEWS_BIN_PATH -b -c $short_text
+    $I3_NEWS_BIN_PATH -b -c "$short_text"
 elif [ "$1" = "version" ]; then
     cat "$HERE"/VERSION
 elif [ "$1" = "--help" ] || [ "$1" = "-h" ]  ; then
@@ -118,5 +118,5 @@ Options:
   -h, --help          Print help
     "
 else
-    $I3_NEWS_BIN_PATH $@
+    $I3_NEWS_BIN_PATH "$@"
 fi
