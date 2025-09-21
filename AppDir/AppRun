@@ -8,6 +8,7 @@ export I3_NEWS_HOME="$HOME"/.config/i3_news
 export I3_NEWS_BIN_PATH="$HERE"/usr/local/bin/i3_news
 export ZSCROLL_EXE="python3 $HERE"/usr/local/bin/zscroll
 export BSCROLL_SCRIPT="$HERE"/usr/local/bin/bscroll
+export PAGINATE_SCRIPT="$HERE"/usr/local/bin/paginate
 
 if [ -z ${I3_NEWS_BROWSER_CMD+x} ]; then
     export I3_NEWS_BROWSER_CMD="$BROWSER"
@@ -76,7 +77,7 @@ elif [ "$1" = "zscroll" ]; then
         --update-check true \
         --update-interval "$ZSCROLL_INTERVAL" "$i3_news_command" &
     wait
-elif [ "$1" = "bscroll" ]; then
+elif [ "$1" = "bscroll" ] || [ "$1" = "scroll" ] ; then
     all_args=("$@")
     params="${all_args[@]:1}"
     BSCROLL_WIDTH=$BSCROLL_WIDTH \
@@ -85,6 +86,15 @@ elif [ "$1" = "bscroll" ]; then
     I3_NEWS_BIN_PATH=$I3_NEWS_BIN_PATH \
     I3_NEWS_BROWSER_CMD=$I3_NEWS_BROWSER_CMD \
     $BSCROLL_SCRIPT "$params"
+elif [ "$1" = "paginate" ]; then
+    all_args=("$@")
+    params="${all_args[@]:1}"
+    BSCROLL_WIDTH=$BSCROLL_WIDTH \
+    BSCROLL_INTERVAL=$BSCROLL_INTERVAL \
+    BSCROLL_DELAY=$BSCROLL_DELAY \
+    I3_NEWS_BIN_PATH=$I3_NEWS_BIN_PATH \
+    I3_NEWS_BROWSER_CMD=$I3_NEWS_BROWSER_CMD \
+    $PAGINATE_SCRIPT "$params"
 # i3 blocks handler
 elif [[ "${BLOCK_BUTTON}" -eq 1 ]]; then
     url="$($I3_NEWS_BIN_PATH --get-url -c $short_text)"
@@ -99,7 +109,7 @@ elif [ "$1" = "version" ]; then
 elif [ "$1" = "--help" ] || [ "$1" = "-h" ]  ; then
     echo "Usage: i3news ?<command> <options>
 
-Commands: open|reload|zscroll|bscroll|version
+Commands: open|reload|paginate|zscroll|bscroll|version
 
 Options:
   -c, --configs       Snippet configuration or configurations to use

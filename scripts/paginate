@@ -32,12 +32,12 @@ if [ -z ${I3_NEWS_WIDTH+x} ]; then
     export I3_NEWS_WIDTH=60
 fi
 
-if [ -z ${SNIPPET_ALIGN+x} ]; then
-    export SNIPPET_ALIGN="left"
+if [ -z ${I3_NEWS_ALIGN+x} ]; then
+    export I3_NEWS_ALIGN="left"
 fi
 
-if [ -z ${SNIPPET_OUTPUT_PANGO+x} ]; then
-    export SNIPPET_OUTPUT_PANGO=0
+if [ -z ${I3_NEWS_OUTPUT_PANGO+x} ]; then
+    export I3_NEWS_OUTPUT_PANGO=0
 fi
 
 if [ "$I3_NEWS_WIDTH" -lt 30 ]; then
@@ -100,12 +100,12 @@ get_text_for_page() {
 
 output_text() {
     snippet_length=$(("$I3_NEWS_WIDTH" + ${#ELLIPSIS} + 2))
-    if [ "$SNIPPET_ALIGN" = "right" ]; then
+    if [ "$I3_NEWS_ALIGN" = "right" ]; then
         text_line=$(echo "$1" | rev)
         text_line=$(printf "%s%0*s" "$text_line" $snippet_length " ");
         text_line=${text_line:0:$snippet_length}
         text_line=$(printf "%s" "$text_line" | rev)
-    elif [ "$SNIPPET_ALIGN" = "center" ]; then
+    elif [ "$I3_NEWS_ALIGN" = "center" ]; then
         pad_base=$(("$snippet_length" - ${#1}))
         pad=$(("$pad_base" / 2))
         rem=$(("$pad" % 2))
@@ -116,7 +116,7 @@ output_text() {
         text_line=$(printf "%s%0*s" "$1" $snippet_length " ");
         text_line=${text_line:0:$snippet_length}
     fi
-    if [ "$SNIPPET_OUTPUT_PANGO" -gt 0 ]; then
+    if [ "$I3_NEWS_OUTPUT_PANGO" -gt 0 ]; then
         echo "<span font_family='monospace'>${text_line}</span>"
     else
         printf "%s\n" "${text_line}"
