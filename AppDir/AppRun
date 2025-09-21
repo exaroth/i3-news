@@ -109,7 +109,7 @@ elif [ "$1" = "version" ]; then
 elif [ "$1" = "--help" ] || [ "$1" = "-h" ]  ; then
     echo "Usage: i3news ?<command> <options>
 
-Commands: open|reload|paginate|zscroll|bscroll|version
+Commands: open|reload|paginate|scroll|version
 
 Options:
   -c, --configs       Snippet configuration or configurations to use
