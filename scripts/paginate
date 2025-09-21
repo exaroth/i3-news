@@ -140,7 +140,7 @@ do
         if [ -z ${I3_NEWS_BROWSER_CMD+x} ]; then
             xdg-open "$url" &
         else
-            "$I3_NEWS_BROWSER_CMD" "$url" &
+            $I3_NEWS_BROWSER_CMD "$url" &
         fi
     fi
     NOW=$(date +%s)
