@@ -11,6 +11,8 @@ if ! type i3_news > /dev/null; then
     exit 1
 fi
 
+EMOJI="\U1f300-\U1f5ff\U1f900-\U1f9ff\U1f600-\U1f64f\U1f680-\U1f6ff\U2600-\U26ff\U2700-\U27bf\U1f1e6-\U1f1ff\U1f191-\U1f251\U1f004\U1f0cf\U1f170-\U1f171\U1f17e-\U1f17f\U1f18e\U3030\U2b50\U2b55\U2934-\U2935\U2b05-\U2b07\U2b1b-\U2b1c\U3297\U3299\U303d\U00a9\U00ae\U2122\U23f3\U24c2\U23e9-\U23ef\U25b6\U23f8-\U23fa"
+
 
 PARAMS="$@"
 
@@ -42,6 +44,16 @@ if [ "$I3NEWS_WIDTH" -lt 30 ]; then
     I3NEWS_WIDTH=30
 fi
 
+get_article() {
+    article=$(${PROG})
+	article=${article//|/}
+	article=${article//#[a-zA-Z0-9]*/}
+	article=${article/\"/\'/}
+	article=$(echo "$article" | sed -e "s/&/and/g" -e "s/</lt/g" -e "s/>/gt/g")
+	article=$(echo "$article" | LC_ALL=UTF-8 sed -e "s/[$(printf $EMOJI)]//g")
+	echo "$article"
+}
+
 get_text_for_page() {
 	page_text=""
 	text=""
@@ -57,9 +69,11 @@ get_text_for_page() {
         fi
         word_count=$(("$word_count" + 1));
 		text_l=${#text}
-
-        comma_break=$(expr "${word: -1}" = "," "&" $word_count ">" 2)
-        period_break=$(expr "${word: -1}" = "." "&" $word_count ">" 2)
+        comma_break=0
+        # expr is not good here as we would have to escape all non alnum chars.
+        if [[ ${word: -1} == [,.] ]] && [ $word_count -gt 2 ]; then
+            comma_break=1
+        fi
 		short_break=$(expr ${#word} "<" 3 "&" $word_count ">" 5)
 		if [ "$text_l" -gt "$I3NEWS_WIDTH" ] || [ "$short_break" -gt 0 ] ; then
 			total_pages=$(("$total_pages" + 1))
@@ -69,7 +83,10 @@ get_text_for_page() {
 			if [ "$2" -eq $total_pages ]; then
 				page_text="$text"
 			fi
-            if  [ "$comma_break" -gt 0 ] || [ "$period_break" -gt 0 ]; then
+            # echo "word_count"$word_count
+            # echo "comma: "$comma_break
+            # echo "period: "$period_break
+            if  [ "$comma_break" -gt 0 ]; then
                 total_pages=$(("$total_pages" + 1))
                 word_count=0
                 text=""
@@ -112,7 +129,7 @@ INS=$(date +%s)
 SWITCH=0
 PAGE=0
 TOTAL_PAGES=0
-ARTICLE=$(${PROG})
+ARTICLE=$(get_article)
 
 while true :
 do
@@ -138,7 +155,7 @@ do
         TOTAL_PAGES=$(("$total_pages_s"))
 
         if [ $PAGE -lt $TOTAL_PAGES ]; then
-            SWITCH=$(("$SWITCH" & 0))
+            SWITCH=0
             if [ "${text: -1}" = "." ] || [ "${text: -1}" = "," ]; then
                 output_text "$text" $PAGE $TOTAL_PAGES
             else
@@ -157,7 +174,7 @@ do
         fi
     fi
     if [ $SWITCH -eq 1 ]; then
-        ARTICLE=$(${PROG})
+        ARTICLE=$(get_article)
         INS=$(date +%s)
         PAGE=0
         SWITCH=0
