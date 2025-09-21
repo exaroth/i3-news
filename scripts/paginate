@@ -20,16 +20,16 @@ PROG="$I3_NEWS_BIN_PATH --plain $PARAMS"
 
 ELLIPSIS="..."
 
-if [ -z ${I3NEWS_INTERVAL+x} ]; then
-    export I3NEWS_INTERVAL=$((10))
+if [ -z ${I3_NEWS_INTERVAL+x} ]; then
+    export I3_NEWS_INTERVAL=$((10))
 fi
 
-if [ -z ${I3NEWS_DELAY+x} ]; then
-    export I3NEWS_DELAY=6
+if [ -z ${I3_NEWS_DELAY+x} ]; then
+    export I3_NEWS_DELAY=6
 fi
 
-if [ -z ${I3NEWS_WIDTH+x} ]; then
-    export I3NEWS_WIDTH=60
+if [ -z ${I3_NEWS_WIDTH+x} ]; then
+    export I3_NEWS_WIDTH=60
 fi
 
 if [ -z ${SNIPPET_ALIGN+x} ]; then
@@ -40,15 +40,14 @@ if [ -z ${SNIPPET_OUTPUT_PANGO+x} ]; then
     export SNIPPET_OUTPUT_PANGO=0
 fi
 
-if [ "$I3NEWS_WIDTH" -lt 30 ]; then
-    I3NEWS_WIDTH=30
+if [ "$I3_NEWS_WIDTH" -lt 30 ]; then
+    I3_NEWS_WIDTH=30
 fi
 
 get_article() {
     article=$(${PROG})
 	article=${article//|/}
 	article=${article//#[a-zA-Z0-9]*/}
-	article=${article/\"/\'/}
 	article=$(echo "$article" | sed -e "s/&/and/g" -e "s/</lt/g" -e "s/>/gt/g")
 	article=$(echo "$article" | LC_ALL=UTF-8 sed -e "s/[$(printf $EMOJI)]//g")
 	echo "$article"
@@ -75,7 +74,7 @@ get_text_for_page() {
             comma_break=1
         fi
 		short_break=$(expr ${#word} "<" 3 "&" $word_count ">" 5)
-		if [ "$text_l" -gt "$I3NEWS_WIDTH" ] || [ "$short_break" -gt 0 ] ; then
+		if [ "$text_l" -gt "$I3_NEWS_WIDTH" ] || [ "$short_break" -gt 0 ] ; then
 			total_pages=$(("$total_pages" + 1))
 			text="$word"
             word_count=0
@@ -100,7 +99,7 @@ get_text_for_page() {
 }
 
 output_text() {
-    snippet_length=$(("$I3NEWS_WIDTH" + ${#ELLIPSIS} + 2))
+    snippet_length=$(("$I3_NEWS_WIDTH" + ${#ELLIPSIS} + 2))
     if [ "$SNIPPET_ALIGN" = "right" ]; then
         text_line=$(echo "$1" | rev)
         text_line=$(printf "%s%0*s" "$text_line" $snippet_length " ");
@@ -135,7 +134,7 @@ while true :
 do
     NOW=$(date +%s)
     SWITCH=0
-    if [[ $(("$NOW" - "$INS")) -gt "${I3NEWS_INTERVAL}" ]]; then
+    if [[ $(("$NOW" - "$INS")) -gt "${I3_NEWS_INTERVAL}" ]]; then
 		SWITCH=1
     fi
 
@@ -143,7 +142,7 @@ do
     TEXT_LENGTH=${#ARTICLE}
     PAGE=$(("$PAGE" + 1))
     
-    if [[ "$TEXT_LENGTH" -lt "$I3NEWS_WIDTH" ]]; then
+    if [[ "$TEXT_LENGTH" -lt "$I3_NEWS_WIDTH" ]]; then
         TOTAL_PAGES=1
         PAGE=1
         SWITCH=$(("$SWITCH" & 1))
@@ -164,7 +163,7 @@ do
         else 
             temp="$text"
             t_l=${#temp}
-            if [ "$t_l" -lt "$I3NEWS_WIDTH" ]; then
+            if [ "$t_l" -lt "$I3_NEWS_WIDTH" ]; then
                 SWITCH=$(("$SWITCH" & 1))
                 output_text "$temp" $PAGE $TOTAL_PAGES
             else
@@ -173,13 +172,22 @@ do
             PAGE=0
         fi
     fi
-    if [ $SWITCH -eq 1 ]; then
+    if [ $SWITCH -eq 1 ] || [[ $click -eq 1 ]]; then
+        if [[ $click -eq 1 ]]; then
+            url=$($I3_NEWS_BIN_PATH --get-url "$PARAMS")
+            if [ -z ${I3_NEWS_BROWSER_CMD+x} ]; then
+                xdg-open "$url" &
+            else
+                "$I3_NEWS_BROWSER_CMD" "$url" &
+            fi
+        fi
         ARTICLE=$(get_article)
+        # echo "article: $ARTICLE"
         INS=$(date +%s)
         PAGE=0
         SWITCH=0
     fi
-    sleep "$I3NEWS_DELAY"
+    sleep "$I3_NEWS_DELAY"
 
 done
 
