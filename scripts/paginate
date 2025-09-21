@@ -70,10 +70,11 @@ get_text_for_page() {
 		text_l=${#text}
         comma_break=0
         # expr is not good here as we would have to escape all non alnum chars.
-        if [[ ${word: -1} == [,.] ]] && [ $word_count -gt 2 ]; then
+        if [[ ${word: -1} == [,.] ]] && \
+            [ $(( ${#text} * 100 / $I3_NEWS_WIDTH )) -gt 65 ]; then
             comma_break=1
         fi
-		short_break=$(expr ${#word} "<" 3 "&" $word_count ">" 5)
+		short_break=$(expr ${#word} "<" 3 "&" $(( ${#text} * 100 / $I3_NEWS_WIDTH )) ">" 60)
 		if [ "$text_l" -gt "$I3_NEWS_WIDTH" ] || [ "$short_break" -gt 0 ] ; then
 			total_pages=$(("$total_pages" + 1))
 			text="$word"
@@ -82,9 +83,6 @@ get_text_for_page() {
 			if [ "$2" -eq $total_pages ]; then
 				page_text="$text"
 			fi
-            # echo "word_count"$word_count
-            # echo "comma: "$comma_break
-            # echo "period: "$period_break
             if  [ "$comma_break" -gt 0 ]; then
                 total_pages=$(("$total_pages" + 1))
                 word_count=0
@@ -130,8 +128,21 @@ PAGE=0
 TOTAL_PAGES=0
 ARTICLE=$(get_article)
 
+output_text "Initializing, please wait..." 1 1
+
 while true :
 do
+
+    read -t "$I3_NEWS_DELAY" click
+    if [[ $click -eq 1 ]]; then
+        cmd="$I3_NEWS_BIN_PATH --get-url $PARAMS"
+        url=$($cmd)
+        if [ -z ${I3_NEWS_BROWSER_CMD+x} ]; then
+            xdg-open "$url" &
+        else
+            "$I3_NEWS_BROWSER_CMD" "$url" &
+        fi
+    fi
     NOW=$(date +%s)
     SWITCH=0
     if [[ $(("$NOW" - "$INS")) -gt "${I3_NEWS_INTERVAL}" ]]; then
@@ -172,22 +183,13 @@ do
             PAGE=0
         fi
     fi
-    if [ $SWITCH -eq 1 ] || [[ $click -eq 1 ]]; then
-        if [[ $click -eq 1 ]]; then
-            url=$($I3_NEWS_BIN_PATH --get-url "$PARAMS")
-            if [ -z ${I3_NEWS_BROWSER_CMD+x} ]; then
-                xdg-open "$url" &
-            else
-                "$I3_NEWS_BROWSER_CMD" "$url" &
-            fi
-        fi
+    if [ $SWITCH -eq 1 ]; then
         ARTICLE=$(get_article)
         # echo "article: $ARTICLE"
         INS=$(date +%s)
         PAGE=0
         SWITCH=0
     fi
-    sleep "$I3_NEWS_DELAY"
 
 done
 
