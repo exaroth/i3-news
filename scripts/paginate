@@ -33,7 +33,7 @@ if [ -z ${I3_NEWS_WIDTH+x} ]; then
 fi
 
 if [ -z ${I3_NEWS_ALIGN+x} ]; then
-    export I3_NEWS_ALIGN="left"
+    export I3_NEWS_ALIGN="center"
 fi
 
 if [ -z ${I3_NEWS_OUTPUT_PANGO+x} ]; then
@@ -74,7 +74,7 @@ get_text_for_page() {
             [ $(( ${#text} * 100 / $I3_NEWS_WIDTH )) -gt 65 ]; then
             comma_break=1
         fi
-		short_break=$(expr ${#word} "<" 3 "&" $(( ${#text} * 100 / $I3_NEWS_WIDTH )) ">" 60)
+		short_break=$(expr ${#word} "<" 3 "&" $(( ${#text} * 100 / $I3_NEWS_WIDTH )) ">" 80)
 		if [ "$text_l" -gt "$I3_NEWS_WIDTH" ] || [ "$short_break" -gt 0 ] ; then
 			total_pages=$(("$total_pages" + 1))
 			text="$word"
