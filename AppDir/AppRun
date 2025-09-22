@@ -80,7 +80,10 @@ elif [ "$1" = "zscroll" ]; then
         --update-check true \
         --update-interval "$ZSCROLL_INTERVAL" "$i3_news_command" &
     wait
-elif [ "$1" = "bscroll" ] || [ "$1" = "scroll" ] ; then
+elif [ "$1" = "bscroll" ] || [ "$1" = "scroll" ] || [ "$1" = "continuous-scroll" ]  ; then
+    if [ "$1" = "continuous-scroll" ]; then
+        I3_NEWS_CONTINUOUS_SCROLL=1
+    fi
     all_args=("$@")
     params="${all_args[@]:1}"
     I3_NEWS_WIDTH=$I3_NEWS_WIDTH \
@@ -114,7 +117,7 @@ elif [ "$1" = "version" ]; then
 elif [ "$1" = "--help" ] || [ "$1" = "-h" ]  ; then
     echo "Usage: i3news ?<command> <options>
 
-Commands: open|reload|paginate|scroll|version
+Commands: open|reload|paginate|scroll|continuous-scroll|version
 
 Options:
   -c, --configs       Snippet configuration or configurations to use
