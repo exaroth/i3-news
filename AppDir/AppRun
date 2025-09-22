@@ -22,18 +22,6 @@ fi
 if [ -z ${ZSCROLL_WIDTH+x} ]; then
     export ZSCROLL_WIDTH=40
 fi
-if [ -z ${I3_NEWS_INTERVAL+x} ]; then
-    export I3_NEWS_INTERVAL=16
-fi
-if [ -z ${I3_NEWS_DELAY+x} ]; then
-    export I3_NEWS_DELAY=0.5
-fi
-if [ -z ${I3_NEWS_OUTPUT_PANGO+x} ]; then
-    export I3_NEWS_OUTPUT_PANGO=0
-fi
-if [ -z ${I3_NEWS_WIDTH+x} ]; then
-    export I3_NEWS_WIDTH=60
-fi
 
 if ! type newsboat > /dev/null; then
     echo "Newsboat binary not found in the system"
@@ -86,20 +74,13 @@ elif [ "$1" = "bscroll" ] || [ "$1" = "scroll" ] || [ "$1" = "continuous-scroll"
     fi
     all_args=("$@")
     params="${all_args[@]:1}"
-    I3_NEWS_WIDTH=$I3_NEWS_WIDTH \
-    I3_NEWS_INTERVAL=$I3_NEWS_INTERVAL \
-    I3_NEWS_DELAY=$I3_NEWS_DELAY \
     I3_NEWS_BIN_PATH=$I3_NEWS_BIN_PATH \
-    I3_NEWS_OUTPUT_PANGO=$I3_NEWS_OUTPUT_PANGO \
     I3_NEWS_CONTINUOUS_SCROLL=$I3_NEWS_CONTINUOUS_SCROLL \
     I3_NEWS_BROWSER_CMD=$I3_NEWS_BROWSER_CMD \
     $BSCROLL_SCRIPT "$params"
 elif [ "$1" = "paginate" ]; then
     all_args=("$@")
     params="${all_args[@]:1}"
-    I3_NEWS_WIDTH=$I3_NEWS_WIDTH \
-    I3_NEWS_INTERVAL=$I3_NEWS_INTERVAL \
-    I3_NEWS_DELAY=$I3_NEWS_DELAY \
     I3_NEWS_BIN_PATH=$I3_NEWS_BIN_PATH \
     I3_NEWS_BROWSER_CMD=$I3_NEWS_BROWSER_CMD \
     $PAGINATE_SCRIPT "$params"
