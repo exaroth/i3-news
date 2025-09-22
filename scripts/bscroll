@@ -19,8 +19,11 @@ fi
 if [ -z ${I3_NEWS_WIDTH+x} ]; then
     export I3_NEWS_WIDTH=60
 fi
-if [ -z ${I3_NEWS_CONTINUOUS_MODE+x} ]; then
-    export I3_NEWS_CONTINUOUS_MODE=0
+if [ -z ${I3_NEWS_CONTINUOUS_SCROLL+x} ]; then
+    export I3_NEWS_CONTINUOUS_SCROLL=0
+fi
+if [ -z ${I3_NEWS_OUTPUT_PANGO+x} ]; then
+    export I3_NEWS_OUTPUT_PANGO=0
 fi
 if [ -z ${I3_NEWS_BIN_PATH+x} ]; then
     export I3_NEWS_BIN_PATH=i3_news
@@ -35,7 +38,7 @@ INS=$(date +%s)
 ARTICLES=()
 
 generate_text_line() {
-	if [ "$I3_NEWS_CONTINUOUS_MODE" -eq 0 ]; then
+	if [ "$I3_NEWS_CONTINUOUS_SCROLL" -eq 0 ]; then
 		article=${ARTICLES[0]}
 		out_text="${article}${ADD_STR}${article}${ADD_STR}${article}"
 	else
@@ -60,11 +63,16 @@ get_article() {
 
 output_text() {
     # echo "<span font_family='monospace'>${TEXT_LINE}</span>"
-    printf "%s\n" "$1"
+    if [ "$I3_NEWS_OUTPUT_PANGO" -gt 0 ]; then
+        echo "<span font_family='monospace'>$1</span>"
+    else
+        printf "%s\n" "$1"
+
+    fi
 
 }
 
-if [ "$I3_NEWS_CONTINUOUS_MODE" -gt 0 ]; then
+if [ "$I3_NEWS_CONTINUOUS_SCROLL" -gt 0 ]; then
 	while true; do
         article=$(get_article)
         ARTICLES+=("$article")
@@ -81,7 +89,7 @@ do
     NOW=$(date +%s)
 	MAX_OFFSET=$((${#ARTICLES[0]} +ADD_LENGTH -1))
 
-	if [ "$I3_NEWS_CONTINUOUS_MODE" -gt 0 ]; then 
+	if [ "$I3_NEWS_CONTINUOUS_SCROLL" -gt 0 ]; then 
 		if [[ "${SCROLL_POS}" -gt "${MAX_OFFSET}" ]]; then
 			SCROLL_POS=0
 			unset "${ARTICLES[0]}"

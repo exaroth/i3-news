@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Added
 - Add paginate option
+- Add continuous scroll option
+### Added
+- Change configuration env var names
 ## [0.3.2] 2025-18-09
 ### Changed
 - Remove emojis/hashtags from output text (bscroll)

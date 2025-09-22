@@ -22,14 +22,17 @@ fi
 if [ -z ${ZSCROLL_WIDTH+x} ]; then
     export ZSCROLL_WIDTH=40
 fi
-if [ -z ${BSCROLL_INTERVAL+x} ]; then
-    export BSCROLL_INTERVAL=16
+if [ -z ${I3_NEWS_INTERVAL+x} ]; then
+    export I3_NEWS_INTERVAL=16
 fi
-if [ -z ${BSCROLL_DELAY+x} ]; then
-    export BSCROLL_DELAY=0.5
+if [ -z ${I3_NEWS_DELAY+x} ]; then
+    export I3_NEWS_DELAY=0.5
 fi
-if [ -z ${BSCROLL_WIDTH+x} ]; then
-    export BSCROLL_WIDTH=60
+if [ -z ${I3_NEWS_OUTPUT_PANGO+x} ]; then
+    export I3_NEWS_OUTPUT_PANGO=0
+fi
+if [ -z ${I3_NEWS_WIDTH+x} ]; then
+    export I3_NEWS_WIDTH=60
 fi
 
 if ! type newsboat > /dev/null; then
@@ -80,18 +83,20 @@ elif [ "$1" = "zscroll" ]; then
 elif [ "$1" = "bscroll" ] || [ "$1" = "scroll" ] ; then
     all_args=("$@")
     params="${all_args[@]:1}"
-    BSCROLL_WIDTH=$BSCROLL_WIDTH \
-    BSCROLL_INTERVAL=$BSCROLL_INTERVAL \
-    BSCROLL_DELAY=$BSCROLL_DELAY \
+    I3_NEWS_WIDTH=$I3_NEWS_WIDTH \
+    I3_NEWS_INTERVAL=$I3_NEWS_INTERVAL \
+    I3_NEWS_DELAY=$I3_NEWS_DELAY \
     I3_NEWS_BIN_PATH=$I3_NEWS_BIN_PATH \
+    I3_NEWS_OUTPUT_PANGO=$I3_NEWS_OUTPUT_PANGO \
+    I3_NEWS_CONTINUOUS_SCROLL=$I3_NEWS_CONTINUOUS_SCROLL \
     I3_NEWS_BROWSER_CMD=$I3_NEWS_BROWSER_CMD \
     $BSCROLL_SCRIPT "$params"
 elif [ "$1" = "paginate" ]; then
     all_args=("$@")
     params="${all_args[@]:1}"
-    BSCROLL_WIDTH=$BSCROLL_WIDTH \
-    BSCROLL_INTERVAL=$BSCROLL_INTERVAL \
-    BSCROLL_DELAY=$BSCROLL_DELAY \
+    I3_NEWS_WIDTH=$I3_NEWS_WIDTH \
+    I3_NEWS_INTERVAL=$I3_NEWS_INTERVAL \
+    I3_NEWS_DELAY=$I3_NEWS_DELAY \
     I3_NEWS_BIN_PATH=$I3_NEWS_BIN_PATH \
     I3_NEWS_BROWSER_CMD=$I3_NEWS_BROWSER_CMD \
     $PAGINATE_SCRIPT "$params"
