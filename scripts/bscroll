@@ -92,7 +92,7 @@ do
 	if [ "$I3_NEWS_CONTINUOUS_SCROLL" -gt 0 ]; then 
 		if [[ "${SCROLL_POS}" -gt "${MAX_OFFSET}" ]]; then
 			SCROLL_POS=0
-			unset "${ARTICLES[0]}"
+            ARTICLES=("${ARTICLES[@]:1}")
             article=$(get_article)
             ARTICLES+=("$article")
 		fi
