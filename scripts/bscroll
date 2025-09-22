@@ -1,5 +1,4 @@
 #!/bin/bash
-# based on: https://github.com/Anachron/i3blocks/blob/master/blocks/scroll
 
 if ! type i3_news > /dev/null; then
     echo "i3_news binary not found in the system"
@@ -98,7 +97,7 @@ do
             if [ -z ${I3_NEWS_BROWSER_CMD+x} ]; then
                 xdg-open "$url" &
             else
-                "$I3_NEWS_BROWSER_CMD" "$url" &
+                $I3_NEWS_BROWSER_CMD "$url" &
             fi
             OUT_TEXT=$(${PROG})
             INS=$(date +%s)
