@@ -1,9 +1,10 @@
 # I3 News [![Licence](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE) [![Zig-0.14.1](https://img.shields.io/badge/zig-0.14.1%2B-orange.svg)](Zig-0.14.1)
 
-<img align="left" width="600" src="assets/i3blocks.gif"><br/><br/><br/>
-
+<img align="left" width="600" src="assets/i3blocks.gif"><br/><br/
 
 <img align="left" width="600" src="assets/waybar.gif"><br/><br/>
+
+<img align="left" width="600" src="assets/polybar.gif"><br/><br/>
 
 
 __I3 News__ let's you create interactive news headline snippets compatible with various i3/sway bar plugins, based on user defined RSS/Atom feeds. 
@@ -70,7 +71,7 @@ Clone the repository and run `make build-appimage` to compile the source and bui
 ```
 Usage: i3news ?<command> <options>
 
-Commands: open|reload|zscroll|bscroll|version
+Commands: open|reload|ticker|scroll|paginate|version
 
 Options:
   -c, --configs       Snippet configuration or configurations to use
@@ -112,6 +113,8 @@ to remove existing one.
 Snippet configurations are stored at `$HOME/.config/i3_news/`.
 
 ### Integration with i3 bar plugins.
+
+#### Static headllines
 
 #### i3blocks
 In order to add i3 news snippet to i3blocks bar edit existing configuration (typically stored at `~/.i3blocks`) adding following entry:
@@ -188,20 +191,51 @@ You can customize color rendering by editing `~/.config/waybar/style.css` and ad
 }
 ```
 
-### Scrolling text headlines
+### Headline ticker, scroll and paginate commands
 
-#### Polybar/Waybar
+__I3 News__ ships supplied with commands for outputting dynamic text headlines, these are useful particularly if your bar setup requires constant widget width. Dynamic headlines are not available for `i3status` integration.
 
-`i3-news` ships with [zscroll](https://github.com/noctuid/zscroll) script which allows for easy incorporation of scrolling text headlines, this feature is only compatible with `polybar` and `waybar` plugins. In order to output headline snippet run:
+Available commands:
+
+#### ticker
+<img align="left" width="400" src="assets/ticker.gif"><br/><br/>
+
+`ticker` command will output infinite feed of scrolling headlines, new headlines will be retrieved and inserted automatically.
+
+#### scroll
+<img align="left" width="400" src="assets/scroll.gif"><br/><br/>
+
+`scroll` command will scroll single headline if it exceeds widget width, otherwise it will output static text.
+
+#### paginate
+<img align="left" width="400" src="assets/paginate.gif"><br/><br/>
+
+`paginate` command will split text into multiple pages if it exceeds widget width, otherwise headline text will be displayed as is.
+
+#### Usage
+
+Usage for dynamic headline commands is as simple as calling:
+
 ```
-i3_news zscroll -c <snippet_name>
+i3_news <command> -c <snippet_name>
 ```
-Parameters of the scrolling snippets can be configured via environment variables:
-- `ZSCROLL_INTERVAL` - how often to refresh news headlines
-- `ZSCROLL_DELAY` - Controls scroll speed
-- `ZSCROLL_WIDTH` - Width of the snippet
+where `<command>` is `ticker`/`scroll`/`paginate`, you can also pass arguments which modify headline retrieval strategy such as `--latest` or `--random`
 
-Scrolling plugins work best with monotype fonts.
+
+
+##### I3blocks integration
+
+Example usage in i3blocks config (`markup=pango` and `interval=persist` settings are required), also pass `I3_NEWS_OUTPUT_PANGO` env variable to ensure that output text is rendered with monospace font which ensures proper rendering of the text.
+
+```
+[NEWS]
+command=I3_NEWS_OUTPUT_PANGO=1 /usr/local/bin/i3_news <ticker/scroll/paginate> -c <snippet_name>
+markup=pango
+color=#FEC925
+interval=persist
+```
+
+
 
 ##### Polybar integration
 
@@ -209,10 +243,9 @@ Reference configuration, note there's no need to include `interval` field for sc
 ```
     [module/i3-news-scroll]
     type = custom/script
-    exec = ZSCROLL_DELAY=0.3 /usr/local/bin/i3_news zscroll -c <snippet_name>
+    exec = /usr/local/bin/i3_news <ticker/scroll/paginate> -c <snippet_name>
     click-left = /usr/local/bin/i3_news open -c <snippet_name>
     tail = true
-    label = %output:0:40:...%
 ```
 
 ##### Waybar integration
@@ -220,36 +253,27 @@ Reference configuration, note there's no need to include `interval` field for sc
 ``` json
     "custom/i3-news-scroll": {
         "escape": "true",
-        "exec": "ZSCROLL_WIDTH=50 /usr/local/bin/i3_news zscroll -c <snippet_name>",
+        "exec": "/usr/local/bin/i3_news <ticker/scroll/paginate> -c <snippet_name>",
         "max-length": 50,
         "min-length": 50,
         "on-click": "/usr/local/bin/i3_news open -c <snippet_name>"
     }
 ```
 
-#### I3blocks
+#### Dynamic headline options
 
-I3 news comes supplied with dedicated command `bscroll` to handle scrolling headlines for i3bar, to use it execute:
+Dynamic headlines can be configured by passing various env vars to `i3_news` executable , most straightforward way to do it is to pass them as a prefix when calling the executable, eg.
 
+``` bash
+ENV_VAR=val `i3_news` <args>
 ```
-i3_news bscroll -c <snippet_name>
-```
+Available settings:
 
-Command defaults can be overriden using following env vars:
-
-- `BSCROLL_INTERVAL` - Refresh rate for the headlines
-- `BSCROLL_DELAY` - Scroll speed
-- `BSCROLL_WIDTH` - Width of the snippet
-
-Example usage in i3blocks config (`markup=pango` and `interval=persist` settings are required)
-
-```
-[News]
-command=BSCROLL_INTERVAL=20 /usr/local/bin/i3_news bscroll -c <snippet_name>
-markup=pango
-color=#FEC925
-interval=persist
-```
+- `I3_NEWS_INTERVAL` - (`scroll`/`paginate` only) Defines how often to swap headlines (in seconds)
+- `I3_NEWS_DELAY` - Refresh interval when outputting text, will determine scrolling speed for `ticker` and `scroll` commands and speed of changing pages for `paginate` command
+- `I3_NEWS_WIDTH` - Width of the snippet
+- `I3_NEWS_ALIGN` - (`paginate` command only) Set text alignment when outputting text, available values: `left`, `right`, `center`
+- `I3_NEWS_OUTPUT_PANGO` - Output text in `pango` format (with monospace font set).
 
 
 ### Configuration
@@ -259,7 +283,6 @@ Configuration for each snippet is stored at `~/.config/i3_news/<snippet_name>/co
 - `max-article-age` - amount of hours in the past for which to display headlines for
 - `output-color` - text color for given snippet (hex based)
 - `refresh-interval` - (i3status only) refresh rate when displaying the headlines
-- `mark-as-read-on-open` - Set to `no` to disable marking articles as read when opening headline url in the browser. Headlines marked as read will be excluded when retrieving article data.
 
 ### License
 See `LICENSE` file for details
