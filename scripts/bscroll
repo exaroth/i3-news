@@ -93,7 +93,9 @@ update_url() {
     url=${URLS[idx]}
     if [ "$url" != "$CURRENT_URL" ]; then
         CURRENT_URL=$url
-        # TODO save url to file
+        if [ -n "$URL_FILE_PATH" ]; then
+            echo "$url" > "$URL_FILE_PATH"
+        fi
     fi
 }
 

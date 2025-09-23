@@ -45,12 +45,24 @@ newsboat_reload() {
     done
 }
 
+get_url_fpath() {
+    checksum=$(echo "$1" | md5sum | awk '{print $1}')
+    echo  "/tmp/.i3-news-scroll-${checksum}.url"
+}
+
 if [ "$1" = "reload" ]; then
     newsboat_reload;
 # polybar 
 elif [ "$1" = "open" ]; then
     all_args=("$@")
-    url="$($I3_NEWS_BIN_PATH --get-url ${all_args[@]:1})"
+    params="${all_args[@]:1}"
+    url_fpath=$(get_url_fpath "$params")
+    if [ -f "$FILE" ]; then
+        url=$(cat "$url_fpath")
+        rm "$url_fpath"
+    else
+        url="$($I3_NEWS_BIN_PATH --get-url ${params})"
+    fi
     if [ -n "${I3_NEWS_BROWSER_CMD+x}" ]; then
         $I3_NEWS_BROWSER_CMD "$url"
     else
@@ -68,15 +80,17 @@ elif [ "$1" = "zscroll" ]; then
         --update-check true \
         --update-interval "$ZSCROLL_INTERVAL" "$i3_news_command" &
     wait
-elif [ "$1" = "bscroll" ] || [ "$1" = "scroll" ] || [ "$1" = "continuous-scroll" ]  ; then
-    if [ "$1" = "continuous-scroll" ]; then
+elif [ "$1" = "bscroll" ] || [ "$1" = "scroll" ] || [ "$1" = "tick" ]  ; then
+    if [ "$1" = "tick" ]; then
         I3_NEWS_CONTINUOUS_SCROLL=1
     fi
     all_args=("$@")
     params="${all_args[@]:1}"
+    url_file=$(get_url_fpath "$params")
     I3_NEWS_BIN_PATH=$I3_NEWS_BIN_PATH \
     I3_NEWS_CONTINUOUS_SCROLL=$I3_NEWS_CONTINUOUS_SCROLL \
     I3_NEWS_BROWSER_CMD=$I3_NEWS_BROWSER_CMD \
+    URL_FILE_PATH="$url_file" \
     $BSCROLL_SCRIPT "$params"
 elif [ "$1" = "paginate" ]; then
     all_args=("$@")
@@ -98,7 +112,7 @@ elif [ "$1" = "version" ]; then
 elif [ "$1" = "--help" ] || [ "$1" = "-h" ]  ; then
     echo "Usage: i3news ?<command> <options>
 
-Commands: open|reload|paginate|scroll|continuous-scroll|version
+Commands: open|reload|paginate|scroll|tick|version
 
 Options:
   -c, --configs       Snippet configuration or configurations to use
