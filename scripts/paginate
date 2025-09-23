@@ -45,7 +45,12 @@ if [ "$I3_NEWS_WIDTH" -lt 30 ]; then
 fi
 
 get_article() {
-    article=$(${PROG})
+    if result=$($PROG 2>&1); then
+        article=$result
+    else
+        rc=$?
+        article=$result
+    fi
 	article=${article//|/}
 	article=${article//#[a-zA-Z0-9]*/}
 	article=$(echo "$article" | sed -e "s/&/and/g" -e "s/</lt/g" -e "s/>/gt/g")

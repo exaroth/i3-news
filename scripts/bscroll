@@ -59,6 +59,12 @@ generate_text_line() {
 
 get_article() {
 	out_text=$(${PROG})
+    if result=$($PROG 2>&1); then
+        out_text=$result
+    else
+        rc=$?
+        out_text=$result
+    fi
 	out_text=$(echo "$out_text" | sed -e "s/&/and/g" -e "s/</lt/g" -e "s/>/gt/g")
 	out_text=$(echo "$out_text" | LC_ALL=UTF-8 sed -e "s/[$(printf $EMOJI)]//g")
 	out_text=$(echo "$out_text" | sed -e "s/#[a-zA-Z0-9]*//g")
@@ -111,7 +117,8 @@ if [ "$I3_NEWS_CONTINUOUS_SCROLL" -gt 0 ]; then
 	done
     update_clickmap
 else
-	ARTICLES+=("$(${PROG})")
+    article=$(get_article)
+    ARTICLES+=("$article")
 fi
 
 output_text "Loading, please wait..."

@@ -81,9 +81,7 @@ elif [ "$1" = "zscroll" ]; then
         --update-interval "$ZSCROLL_INTERVAL" "$i3_news_command" &
     wait
 elif [ "$1" = "bscroll" ] || [ "$1" = "scroll" ] || [ "$1" = "tick" ]  ; then
-    if [ "$1" = "tick" ]; then
-        I3_NEWS_CONTINUOUS_SCROLL=1
-    fi
+    I3_NEWS_CONTINUOUS_SCROLL=$(expr "$1" "=" "tick")
     all_args=("$@")
     params="${all_args[@]:1}"
     url_file=$(get_url_fpath "$params")
