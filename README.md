@@ -198,17 +198,17 @@ __I3 News__ ships supplied with commands for outputting dynamic text headlines, 
 Available commands:
 
 #### ticker
-<img align="left" width="400" src="assets/ticker.gif"><br/><br/>
+<img align="left" width="500" src="assets/tick.gif"><br/><br/>
 
 `ticker` command will output infinite feed of scrolling headlines, new headlines will be retrieved and inserted automatically.
 
 #### scroll
-<img align="left" width="400" src="assets/scroll.gif"><br/><br/>
+<img align="left" width="500" src="assets/scroll.gif"><br/><br/>
 
 `scroll` command will scroll single headline if it exceeds widget width, otherwise it will output static text.
 
 #### paginate
-<img align="left" width="400" src="assets/paginate.gif"><br/><br/>
+<img align="left" width="500" src="assets/paginate.gif"><br/><br/>
 
 `paginate` command will split text into multiple pages if it exceeds widget width, otherwise headline text will be displayed as is.
 
