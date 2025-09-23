@@ -14,6 +14,7 @@ cp -Rf AppDir build
 mkdir -p build/AppDir/usr/local/bin
 
 cp scripts/bscroll build/AppDir/usr/local/bin
+cp scripts/paginate build/AppDir/usr/local/bin
 cp zig-out/bin/i3_news build/AppDir/usr/local/bin
 cp VERSION build/AppDir
 wget -O build/AppDir/usr/local/bin/zscroll https://raw.githubusercontent.com/noctuid/zscroll/master/zscroll
