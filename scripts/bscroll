@@ -33,8 +33,12 @@ fi
 ADD_STR=" | "
 ADD_LENGTH=${#ADD_STR}
 PROG="$I3_NEWS_BIN_PATH --plain $PARAMS"
+URL_PROG="$I3_NEWS_BIN_PATH --get-url $PARAMS"
 SCROLL_POS=0
 INS=$(date +%s)
+CLICKMAP=""
+CURRENT_URL=""
+URLS=()
 ARTICLES=()
 
 generate_text_line() {
@@ -69,20 +73,46 @@ output_text() {
         printf "%s\n" "$1"
 
     fi
+}
 
+update_clickmap() {
+    clickmap=""
+    for idx in "${!ARTICLES[@]}"
+    do
+        len=$((${#ARTICLES[idx]} + "$ADD_LENGTH"))
+        el=$(printf '%*s' "$len" ""|tr \  "$idx" )
+        clickmap="$clickmap$el"
+    done
+    CLICKMAP=$clickmap
+}
+
+update_url() {
+	window=${CLICKMAP:$SCROLL_POS:$I3_NEWS_WIDTH}
+    mid=$(("${#window}" / 2))
+    idx=$(echo "$window" | cut -c $mid)
+    url=${URLS[idx]}
+    if [ "$url" != "$CURRENT_URL" ]; then
+        CURRENT_URL=$url
+        # TODO save url to file
+    fi
 }
 
 if [ "$I3_NEWS_CONTINUOUS_SCROLL" -gt 0 ]; then
 	while true; do
         article=$(get_article)
         ARTICLES+=("$article")
+        url=$(${URL_PROG})
+        URLS+=("$url")
 		if [ ${#ARTICLES[@]} -eq 5 ]; then
 			break
-	fi
+        fi
 	done
+    update_clickmap
 else
 	ARTICLES+=("$(${PROG})")
 fi
+
+output_text "Loading, please wait..."
 
 while true :
 do
@@ -95,10 +125,15 @@ do
             ARTICLES=("${ARTICLES[@]:1}")
             article=$(get_article)
             ARTICLES+=("$article")
+            URLS=("${URLS[@]:1}")
+            url=$(${URL_PROG})
+            URLS+=("$url")
+            update_clickmap
 		fi
 		TEXT_LINE=$(generate_text_line)
 
         output_text "$TEXT_LINE"
+        update_url
 		SCROLL_POS=$((SCROLL_POS +1))
 	else
 		if [[ $(("$NOW" - "$INS")) -gt "${I3_NEWS_INTERVAL}" ]]; then
@@ -138,16 +173,22 @@ do
 
     read -t "${I3_NEWS_DELAY}" click
     if [[ $click -eq 1 ]]; then
-        cmd="$I3_NEWS_BIN_PATH --get-url $PARAMS"
-        url=$($cmd)
+        if [ "$I3_NEWS_CONTINUOUS_SCROLL" -gt 0 ]; then
+            url=$CURRENT_URL
+        else
+            cmd="$I3_NEWS_BIN_PATH --get-url $PARAMS"
+            url=$($cmd)
+        fi
         if [ -z ${I3_NEWS_BROWSER_CMD+x} ]; then
             xdg-open "$url" &
         else
             $I3_NEWS_BROWSER_CMD "$url" &
         fi
-		ARTICLES[0]="$(get_article)"
-        INS=$(date +%s)
-        SCROLL_POS=0
+        if [ "$I3_NEWS_CONTINUOUS_SCROLL" -eq 0 ]; then
+            ARTICLES[0]="$(get_article)"
+            INS=$(date +%s)
+            SCROLL_POS=0
+        fi
         continue
     fi
 
