@@ -14,7 +14,7 @@ pub const default_settings =
     \\# Defines whether to mark articles as read when opening headline url 
     \\# in the browser, articles marked as read will be excluded when retrieving
     \\# headline data.
-    \\mark-as-read-on-open yes
+    \\mark-as-read-on-open no
 ;
 
 /// ConfigSettings is used for parsing
