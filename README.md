@@ -25,9 +25,11 @@ Compatibility list:
     - [i3status](#i3status)
     - [Polybar](#polybar)
     - [Waybar](#waybar)
-- [Scrolling headlines](#scrolling-text-headlines)
-    - [Polybar/Waybar](#polybarwaybar)
-    - [i3blocks](#i3blocks-1)
+- [Dynamic headlines](#headline-ticker-scroll-and-paginate-commands)
+    - [i3blocks](#i3blocks-integration)
+    - [Polybar](#polybar-integration)
+	- [Waybar](#waybar-integration)
+	- [Dynamic headline options](#dynamic-headline-options)
 - [Configuration](#configuration)
 <!--toc:end-->
 ### Installation
@@ -221,21 +223,17 @@ i3_news <command> -c <snippet_name>
 ```
 where `<command>` is `ticker`/`scroll`/`paginate`, you can also pass arguments which modify headline retrieval strategy such as `--latest` or `--random`
 
-
-
 ##### I3blocks integration
 
 Example usage in i3blocks config (`markup=pango` and `interval=persist` settings are required), also pass `I3_NEWS_OUTPUT_PANGO` env variable to ensure that output text is rendered with monospace font which ensures proper rendering of the text.
 
 ```
-[NEWS]
-command=I3_NEWS_OUTPUT_PANGO=1 /usr/local/bin/i3_news <ticker/scroll/paginate> -c <snippet_name>
-markup=pango
-color=#FEC925
-interval=persist
+    [NEWS]
+    command=I3_NEWS_OUTPUT_PANGO=1 /usr/local/bin/i3_news <ticker/scroll/paginate> -c <snippet_name>
+    markup=pango
+    color=#FEC925
+    interval=persist
 ```
-
-
 
 ##### Polybar integration
 
@@ -247,6 +245,9 @@ Reference configuration, note there's no need to include `interval` field for sc
     click-left = /usr/local/bin/i3_news open -c <snippet_name>
     tail = true
 ```
+> [!NOTE]
+> If you pass any additional arguments to the dynamic headline command such as --latest or --random
+> make sure to pass same set of commands to `open` as well, this also applies to Waybar integration.
 
 ##### Waybar integration
 
