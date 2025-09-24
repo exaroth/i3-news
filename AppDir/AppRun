@@ -57,7 +57,7 @@ elif [ "$1" = "open" ]; then
     all_args=("$@")
     params="${all_args[@]:1}"
     url_fpath=$(get_url_fpath "$params")
-    if [ -f "$FILE" ]; then
+    if [ -f "$url_fpath" ]; then
         url=$(cat "$url_fpath")
         rm "$url_fpath"
     else
