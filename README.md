@@ -25,7 +25,7 @@ Compatibility list:
     - [i3status](#i3status)
     - [Polybar](#polybar)
     - [Waybar](#waybar)
-- [Dynamic headlines](#headline-ticker-scroll-and-paginate-commands)
+- [Dynamic headlines](#headline-tick-scroll-and-paginate-commands)
     - [i3blocks](#i3blocks-integration)
     - [Polybar](#polybar-integration)
 	- [Waybar](#waybar-integration)
@@ -73,7 +73,7 @@ Clone the repository and run `make build-appimage` to compile the source and bui
 ```
 Usage: i3news ?<command> <options>
 
-Commands: open|reload|ticker|scroll|paginate|version
+Commands: open|reload|tick|scroll|paginate|version
 
 Options:
   -c, --configs       Snippet configuration or configurations to use
@@ -193,7 +193,7 @@ You can customize color rendering by editing `~/.config/waybar/style.css` and ad
 }
 ```
 
-### Headline ticker, scroll and paginate commands
+### Headline tick, scroll and paginate commands
 
 __I3 News__ ships supplied with commands for outputting dynamic text headlines, these are useful particularly if your bar setup requires constant widget width. Dynamic headlines are not available for `i3status` integration.
 
@@ -202,7 +202,7 @@ Available commands:
 #### ticker
 <img align="left" width="400" src="assets/tick.gif"><br/><br/>
 
-`ticker` command will output infinite feed of scrolling headlines, new headlines will be retrieved and inserted automatically.
+`tick` command will output infinite feed of scrolling headlines, new headlines will be retrieved and inserted automatically.
 
 #### scroll
 <img align="left" width="400" src="assets/scroll.gif"><br/><br/>
@@ -221,15 +221,15 @@ Usage for dynamic headline commands is as simple as calling:
 ```
 i3_news <command> -c <snippet_name>
 ```
-where `<command>` is `ticker`/`scroll`/`paginate`, you can also pass arguments which modify headline retrieval strategy such as `--latest` or `--random`
+where `<command>` is `tick`/`scroll`/`paginate`, you can also pass arguments which modify headline retrieval strategy such as `--latest` or `--random`
 
 ##### I3blocks integration
 
-Example usage in i3blocks config (`markup=pango` and `interval=persist` settings are required), also pass `I3_NEWS_OUTPUT_PANGO` env variable to ensure that output text is rendered with monospace font which ensures proper rendering of the text.
+Example usage in i3blocks config (`markup=pango` and `interval=persist` settings are required), also pass `I3_NEWS_OUTPUT_PANGO` env variable to ensure that output text is rendered with monospace font, in order to properly render output text.
 
 ```
     [NEWS]
-    command=I3_NEWS_OUTPUT_PANGO=1 /usr/local/bin/i3_news <ticker/scroll/paginate> -c <snippet_name>
+    command=I3_NEWS_OUTPUT_PANGO=1 /usr/local/bin/i3_news <tick/scroll/paginate> -c <snippet_name>
     markup=pango
     color=#FEC925
     interval=persist
@@ -241,12 +241,12 @@ Reference configuration, note there's no need to include `interval` field for sc
 ```
     [module/i3-news-scroll]
     type = custom/script
-    exec = /usr/local/bin/i3_news <ticker/scroll/paginate> -c <snippet_name>
+    exec = /usr/local/bin/i3_news <tick/scroll/paginate> -c <snippet_name>
     click-left = /usr/local/bin/i3_news open -c <snippet_name>
     tail = true
 ```
 > [!NOTE]
-> If you pass any additional arguments to the dynamic headline command such as --latest or --random
+> If you pass any additional arguments to the dynamic headline command such as `--latest` or `--random`
 > make sure to pass same set of commands to `open` as well, this also applies to Waybar integration.
 
 ##### Waybar integration
@@ -254,7 +254,7 @@ Reference configuration, note there's no need to include `interval` field for sc
 ``` json
     "custom/i3-news-scroll": {
         "escape": "true",
-        "exec": "/usr/local/bin/i3_news <ticker/scroll/paginate> -c <snippet_name>",
+        "exec": "/usr/local/bin/i3_news <tick/scroll/paginate> -c <snippet_name>",
         "max-length": 50,
         "min-length": 50,
         "on-click": "/usr/local/bin/i3_news open -c <snippet_name>"
@@ -271,7 +271,7 @@ ENV_VAR=val `i3_news` <args>
 Available settings:
 
 - `I3_NEWS_INTERVAL` - (`scroll`/`paginate` only) Defines how often to swap headlines (in seconds)
-- `I3_NEWS_DELAY` - Refresh interval when outputting text, will determine scrolling speed for `ticker` and `scroll` commands and speed of changing pages for `paginate` command
+- `I3_NEWS_DELAY` - Refresh interval when outputting text, will determine scrolling speed for `tick` and `scroll` commands and speed of changing pages for `paginate` command
 - `I3_NEWS_WIDTH` - Width of the snippet
 - `I3_NEWS_ALIGN` - (`paginate` command only) Set text alignment when outputting text, available values: `left`, `right`, `center`
 - `I3_NEWS_OUTPUT_PANGO` - Output text in `pango` format (with monospace font set).
