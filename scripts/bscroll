@@ -193,6 +193,7 @@ do
         else
             $I3_NEWS_BROWSER_CMD "$url" &
         fi
+        sleep 1
         if [ "$I3_NEWS_CONTINUOUS_SCROLL" -eq 0 ]; then
             ARTICLES[0]="$(get_article)"
             INS=$(date +%s)

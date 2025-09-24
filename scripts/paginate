@@ -147,6 +147,7 @@ do
         else
             $I3_NEWS_BROWSER_CMD "$url" &
         fi
+        sleep 1
     fi
     NOW=$(date +%s)
     SWITCH=0
