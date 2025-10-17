@@ -143,11 +143,12 @@ do
         cmd="$I3_NEWS_BIN_PATH --get-url $PARAMS"
         url=$($cmd)
         if [ -z ${I3_NEWS_BROWSER_CMD+x} ]; then
-            xdg-open "$url" &
+            xdg-open "$url" > /dev/null &
         else
-            $I3_NEWS_BROWSER_CMD "$url" &
+            $I3_NEWS_BROWSER_CMD "$url" > /dev/null &
         fi
-        sleep 1
+        sleep 2
+        continue
     fi
     NOW=$(date +%s)
     SWITCH=0

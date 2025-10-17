@@ -51,7 +51,7 @@ sh -c "$(curl -fsSL https://raw.githubusercontent.com/exaroth/i3-news/master/ins
 sh -c "$(curl -fsSL https://raw.githubusercontent.com/exaroth/i3-news/master/install_full.sh)"
 ```
 
-You can also download `i3_news` executables from [releases](https://github.com/exaroth/i3-news/releases) page.
+You can also download `i3-news` executables from [releases](https://github.com/exaroth/i3-news/releases) page.
 
 Following the installation update your crontab to set up regular RSS feed reloads , eg to update feeds every 20 minutes:
 
@@ -59,7 +59,7 @@ Following the installation update your crontab to set up regular RSS feed reload
 `crontab -e`
 
 ``` crontab
-*/20 * * * * /usr/local/bin/i3_news reload
+*/20 * * * * /usr/local/bin/i3-news reload
 ```
  
 #### Building from source
@@ -97,22 +97,22 @@ Options:
 In order to create new I3 news snippet execute:
 
 ``` sh
-i3_news -a <snippet_name>
+i3-news -a <snippet_name>
 ```
 
 You will be prompted to enter list of RSS/Atom urls which will be tracked by the snippet.
 
 Use 
 ```
-i3_news -e <snippet_name>
+i3-news -e <snippet_name>
 ```
 To edit snippet urls, or
 ```
-i3_news -r <snippet_name>
+i3-news -r <snippet_name>
 ```
 to remove existing one.
 
-Snippet configurations are stored at `$HOME/.config/i3_news/`.
+Snippet configurations are stored at `$HOME/.config/i3-news/`.
 
 ### Integration with i3 bar plugins.
 
@@ -123,7 +123,7 @@ In order to add i3 news snippet to i3blocks bar edit existing configuration (typ
 
 ```
 [News]
-command=/usr/local/bin/i3_news -b -c <snippet_name>
+command=/usr/local/bin/i3-news -b -c <snippet_name>
 interval=30
 ```
 (`interval` value will determine how often headlines will be refreshed)
@@ -131,7 +131,7 @@ interval=30
 Additionally in order to customize browser command to use when opening headline url you can use `I3_NEWS_BROWSER_CMD` env variable, for example to open url in new firefox tab use:
 
 ```
-command=I3_NEWS_BROWSER_CMD="/usr/bin/firefox --new-tab" /usr/local/bin/i3_news -b -c <snippet_name>
+command=I3_NEWS_BROWSER_CMD="/usr/bin/firefox --new-tab" /usr/local/bin/i3-news -b -c <snippet_name>
 ```
 
 #### i3status
@@ -147,7 +147,7 @@ status_command  i3status
 entry, replace it with:
 
 ```
-status_command  i3status | /usr/local/bin/i3_news -s -c <snippet_name>
+status_command  i3status | /usr/local/bin/i3-news -s -c <snippet_name>
 ```
 
 You can also output more than 1 snippet by passing comma delimited list of snippet names as part of `-c` parameter.
@@ -159,10 +159,10 @@ Edit polybar configuration file (usually stored at `~/.config/polybar/config.ini
 ``` ini
     [module/i3-news]
     type = custom/script
-    exec = /usr/local/bin/i3_news -p -c <snippet_name>
+    exec = /usr/local/bin/i3-news -p -c <snippet_name>
     tail = true
     interval = 10
-    click-left = /usr/local/bin/i3_news open -c <snippet_name>
+    click-left = /usr/local/bin/i3-news open -c <snippet_name>
 ```
 then update either `modules-left` or `modules-right` entry with `i3-news`.
 
@@ -175,11 +175,11 @@ Edit waybar configuraton (typically stored at `~/.config/waybar/config`), add fo
 
 ``` json
     "custom/i3-news": {
-        "exec": "/usr/local/bin/i3_news -w -c <snippet_name>",
+        "exec": "/usr/local/bin/i3-news -w -c <snippet_name>",
         "return-type": "json",
         "interval": 10,
         "tooltip": false,
-        "on-click": "/usr/local/bin/i3_news open -c <snippet_name>"
+        "on-click": "/usr/local/bin/i3-news open -c <snippet_name>"
     }
 ```
 
@@ -219,7 +219,7 @@ Available commands:
 Usage for dynamic headline commands is as simple as calling:
 
 ```
-i3_news <command> -c <snippet_name>
+i3-news <command> -c <snippet_name>
 ```
 where `<command>` is `tick`/`scroll`/`paginate`, you can also pass arguments which modify headline retrieval strategy such as `--latest` or `--random`
 
@@ -229,7 +229,7 @@ Example usage in i3blocks config (`markup=pango` and `interval=persist` settings
 
 ```
     [NEWS]
-    command=I3_NEWS_OUTPUT_PANGO=1 /usr/local/bin/i3_news <tick/scroll/paginate> -c <snippet_name>
+    command=I3_NEWS_OUTPUT_PANGO=1 /usr/local/bin/i3-news <tick/scroll/paginate> -c <snippet_name>
     markup=pango
     color=#FEC925
     interval=persist
@@ -241,8 +241,8 @@ Reference configuration, note there's no need to include `interval` field for sc
 ```
     [module/i3-news-scroll]
     type = custom/script
-    exec = /usr/local/bin/i3_news <tick/scroll/paginate> -c <snippet_name>
-    click-left = /usr/local/bin/i3_news open -c <snippet_name>
+    exec = /usr/local/bin/i3-news <tick/scroll/paginate> -c <snippet_name>
+    click-left = /usr/local/bin/i3-news open -c <snippet_name>
     tail = true
 ```
 > [!NOTE]
@@ -254,19 +254,19 @@ Reference configuration, note there's no need to include `interval` field for sc
 ``` json
     "custom/i3-news-scroll": {
         "escape": "true",
-        "exec": "/usr/local/bin/i3_news <tick/scroll/paginate> -c <snippet_name>",
+        "exec": "/usr/local/bin/i3-news <tick/scroll/paginate> -c <snippet_name>",
         "max-length": 50,
         "min-length": 50,
-        "on-click": "/usr/local/bin/i3_news open -c <snippet_name>"
+        "on-click": "/usr/local/bin/i3-news open -c <snippet_name>"
     }
 ```
 
 #### Dynamic headline options
 
-Dynamic headlines can be configured by passing various env vars to `i3_news` executable , most straightforward way to do it is to pass them as a prefix when calling the executable, eg.
+Dynamic headlines can be configured by passing various env vars to `i3-news` executable , most straightforward way to do it is to pass them as a prefix when calling the executable, eg.
 
 ``` bash
-ENV_VAR=val `i3_news` <args>
+ENV_VAR=val `i3-news` <args>
 ```
 Available settings:
 
@@ -279,7 +279,7 @@ Available settings:
 
 ### Configuration
 
-Configuration for each snippet is stored at `~/.config/i3_news/<snippet_name>/config` with following options available:
+Configuration for each snippet is stored at `~/.config/i3-news/<snippet_name>/config` with following options available:
 
 - `max-article-age` - amount of hours in the past for which to display headlines for
 - `output-color` - text color for given snippet (hex based)
