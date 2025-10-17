@@ -108,7 +108,7 @@ elif [[ "${BLOCK_BUTTON}" -eq 1 ]]; then
 elif [ "$1" = "version" ]; then
     cat "$HERE"/VERSION
 elif [ "$1" = "--help" ] || [ "$1" = "-h" ]  ; then
-    echo "Usage: i3news ?<command> <options>
+    echo "Usage: i3-news ?<command> <options>
 
 Commands: open|reload|paginate|scroll|tick|version
 

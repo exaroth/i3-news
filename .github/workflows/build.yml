@@ -19,10 +19,10 @@ jobs:
       matrix:
         version:
           - type: normal
-            binary_name: i3_news
+            binary_name: i3-news
 
           - type: self_contained
-            binary_name: i3_news_self_contained
+            binary_name: i3-news-self-contained
 
     steps:
       - uses: actions/checkout@v4
