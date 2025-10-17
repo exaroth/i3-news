@@ -71,7 +71,7 @@ Clone the repository and run `make build-appimage` to compile the source and bui
 ### Usage
 
 ```
-Usage: i3news ?<command> <options>
+Usage: i3-news ?<command> <options>
 
 Commands: open|reload|tick|scroll|paginate|version
 
@@ -112,7 +112,7 @@ i3-news -r <snippet_name>
 ```
 to remove existing one.
 
-Snippet configurations are stored at `$HOME/.config/i3-news/`.
+Snippet configurations are stored at `$HOME/.config/i3_news/`.
 
 ### Integration with i3 bar plugins.
 
@@ -279,7 +279,7 @@ Available settings:
 
 ### Configuration
 
-Configuration for each snippet is stored at `~/.config/i3-news/<snippet_name>/config` with following options available:
+Configuration for each snippet is stored at `~/.config/i3_news/<snippet_name>/config` with following options available:
 
 - `max-article-age` - amount of hours in the past for which to display headlines for
 - `output-color` - text color for given snippet (hex based)
