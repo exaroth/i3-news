@@ -25,7 +25,7 @@ fi
 if [ -z ${I3_NEWS_OUTPUT_PANGO+x} ]; then
     export I3_NEWS_OUTPUT_PANGO=0
 fi
-if [ -z ${I3_NEWS_BIN_PATH+x} ]; then
+if [ -z "$I3_NEWS_BIN_PATH" ]; then
     export I3_NEWS_BIN_PATH=i3-news
 fi
 

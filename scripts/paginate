@@ -2,7 +2,7 @@
 
 #shellcheck disable=SC2162
 
-if [ -z ${I3_NEWS_BIN_PATH+x} ]; then
+if [ -z "$I3_NEWS_BIN_PATH" ]; then
     export I3_NEWS_BIN_PATH=i3-news
 fi
 
