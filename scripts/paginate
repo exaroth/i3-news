@@ -3,11 +3,11 @@
 #shellcheck disable=SC2162
 
 if [ -z ${I3_NEWS_BIN_PATH+x} ]; then
-    export I3_NEWS_BIN_PATH=i3_news
+    export I3_NEWS_BIN_PATH=i3-news
 fi
 
-if ! type i3_news > /dev/null; then
-    echo "i3_news binary not found in the system"
+if ! type i3-news > /dev/null; then
+    echo "i3-news binary not found in the system"
     exit 1
 fi
 
