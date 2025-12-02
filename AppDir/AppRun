@@ -84,14 +84,12 @@ elif [ "$1" = "bscroll" ] || [ "$1" = "scroll" ] || [ "$1" = "tick" ]  ; then
     url_file=$(get_url_fpath "$params")
     I3_NEWS_BIN_PATH=$I3_NEWS_BIN_PATH \
     I3_NEWS_CONTINUOUS_SCROLL=$I3_NEWS_CONTINUOUS_SCROLL \
-    I3_NEWS_BROWSER_CMD=$I3_NEWS_BROWSER_CMD \
     URL_FILE_PATH="$url_file" \
     $BSCROLL_SCRIPT "$params"
 elif [ "$1" = "paginate" ]; then
     all_args=("$@")
     params="${all_args[@]:1}"
     I3_NEWS_BIN_PATH=$I3_NEWS_BIN_PATH \
-    I3_NEWS_BROWSER_CMD=$I3_NEWS_BROWSER_CMD \
     $PAGINATE_SCRIPT "$params"
 # i3 blocks handler
 elif [[ "${BLOCK_BUTTON}" -eq 1 ]]; then
