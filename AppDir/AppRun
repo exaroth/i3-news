@@ -11,7 +11,9 @@ export BSCROLL_SCRIPT="$HERE"/usr/local/bin/bscroll
 export PAGINATE_SCRIPT="$HERE"/usr/local/bin/paginate
 
 if [ -z ${I3_NEWS_BROWSER_CMD+x} ]; then
-    export I3_NEWS_BROWSER_CMD="$BROWSER"
+    if [ -n "${BROWSER+x}" ]; then
+        export I3_NEWS_BROWSER_CMD="$BROWSER"
+    fi
 fi
 if [ -z ${ZSCROLL_INTERVAL+x} ]; then
     export ZSCROLL_INTERVAL=10
