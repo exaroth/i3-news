@@ -10,9 +10,6 @@ export ZSCROLL_EXE="python3 $HERE"/usr/local/bin/zscroll
 export BSCROLL_SCRIPT="$HERE"/usr/local/bin/bscroll
 export PAGINATE_SCRIPT="$HERE"/usr/local/bin/paginate
 
-if [ -z ${I3_NEWS_BROWSER_CMD+x} ]; then
-    export I3_NEWS_BROWSER_CMD="$BROWSER"
-fi
 if [ -z ${ZSCROLL_INTERVAL+x} ]; then
     export ZSCROLL_INTERVAL=10
 fi
@@ -63,10 +60,10 @@ elif [ "$1" = "open" ]; then
     else
         url="$($I3_NEWS_BIN_PATH --get-url ${params})"
     fi
-    if [ -n "${I3_NEWS_BROWSER_CMD+x}" ]; then
-        $I3_NEWS_BROWSER_CMD "$url"
-    else
+    if [ -z ${I3_NEWS_BROWSER_CMD+x} ]; then
         xdg-open "$url"
+    else
+        $I3_NEWS_BROWSER_CMD "$url"
     fi
 elif [ "$1" = "zscroll" ]; then
     all_args=("$@")
@@ -99,10 +96,10 @@ elif [ "$1" = "paginate" ]; then
 # i3 blocks handler
 elif [[ "${BLOCK_BUTTON}" -eq 1 ]]; then
     url="$($I3_NEWS_BIN_PATH --get-url -c $short_text)"
-    if [ -n "${I3_NEWS_BROWSER_CMD+x}" ]; then
-        $I3_NEWS_BROWSER_CMD "$url"
-    else
+    if [ -z ${I3_NEWS_BROWSER_CMD+x} ]; then
         xdg-open "$url"
+    else
+        $I3_NEWS_BROWSER_CMD "$url"
     fi
     $I3_NEWS_BIN_PATH -b -c "$short_text"
 elif [ "$1" = "version" ]; then

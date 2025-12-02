@@ -225,7 +225,7 @@ where `<command>` is `tick`/`scroll`/`paginate`, you can also pass arguments whi
 
 ##### I3blocks integration
 
-Example usage in i3blocks config (`markup=pango` and `interval=persist` settings are required), also pass `I3_NEWS_OUTPUT_PANGO` env variable to ensure that output text is rendered with monospace font, in order to properly render output text.
+Example usage in i3blocks config (`markup=pango` and `interval=persist` settings are required), also pass `I3_NEWS_OUTPUT_PANGO` env variable to ensure that output text is rendered with monospace font.
 
 ```
     [NEWS]
@@ -287,4 +287,3 @@ Configuration for each snippet is stored at `~/.config/i3_news/<snippet_name>/co
 
 ### License
 See `LICENSE` file for details
-
