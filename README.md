@@ -266,7 +266,7 @@ Reference configuration, note there's no need to include `interval` field for sc
 Dynamic headlines can be configured by passing various env vars to `i3-news` executable , most straightforward way to do it is to pass them as a prefix when calling the executable, eg.
 
 ``` bash
-ENV_VAR=val `i3-news` <args>
+ENV_VAR=val i3-news <args>
 ```
 Available settings:
 

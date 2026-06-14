@@ -128,7 +128,7 @@ do
     NOW=$(date +%s)
 	MAX_OFFSET=$((${#ARTICLES[0]} +ADD_LENGTH -1))
 
-	if [ "$I3_NEWS_CONTINUOUS_SCROLL" -gt 0 ]; then 
+	if [ "$I3_NEWS_CONTINUOUS_SCROLL" -gt 0 ]; then
 		if [[ "${SCROLL_POS}" -gt "${MAX_OFFSET}" ]]; then
 			SCROLL_POS=0
             ARTICLES=("${ARTICLES[@]:1}")
@@ -154,9 +154,10 @@ do
 		OUT_TEXT=${ARTICLES[0]}
 		TEXT_LENGTH=${#OUT_TEXT}
 
-		if [[ "$OUT_TEXT" = "No News" ]]; then
+		if [[ "$OUT_TEXT" = "News empty" ]]; then
 			echo "<span font_family='monospace'>${OUT_TEXT}</span>"
 			sleep 1
+            continue
 		fi
 
 		if [[ "$TEXT_LENGTH" -lt "$I3_NEWS_WIDTH" ]]; then
